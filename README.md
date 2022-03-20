@@ -1,5 +1,5 @@
 # InfoTorch
-## Advanced statistical modeling, analyses, and tests accelerated with PyTorch.
+### Advanced statistical modeling, analyses, and tests accelerated with PyTorch.
 
 ## Installing (linux only for now)
 - Clone this repository wherever you want
