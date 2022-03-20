@@ -1,5 +1,5 @@
 # InfoTorch
-### Advanced statistical modeling, analyses, and tests accelerated with PyTorch.
+### Facilitates hardware acceleration (GPU, TPU) of advanced statistical modeling, analyses, and tests in PyTorch.
 
 ## Installing
 - Clone this repository wherever you want
