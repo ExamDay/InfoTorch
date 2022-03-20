@@ -1,42 +1,52 @@
-# Welcome to InfoTorch 👋
-![Version](https://img.shields.io/badge/version-0.1-blue.svg?cacheSeconds=2592000)
-[![Documentation](https://img.shields.io/badge/documentation-yes-brightgreen.svg)](https://github.com/ExamDay/InfoTorch#readme)
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/ExamDay/InfoTorch/graphs/commit-activity)
-[![License: MIT](https://img.shields.io/github/license/ExamDay/InfoTorch)](https://github.com/ExamDay/InfoTorch/blob/master/LICENSE)
+<h1 align="center">InfoTorch:<br>Advanced statistical modeling, analyses, and tests accelerated
+with PyTorch</h1>
 
-> Advanced statistical modeling, analyses, and tests with with PyTorch.
+## Installing (linux only for now)
+- Clone this repository wherever you want
 
-### 🏠 [Homepage](https://github.com/ExamDay/InfoTorch.git#readme)
-
-## Install
-
-```sh
+- Create vitual environment and active it (if you're radical like me and addicted to danger you can skip this step)
+```bash
+cd /path/to/this/repository
+python3 -m venv venv
+source venv/bin/activate
+```
+- Install the requirements
+```
 pip3 install -r requirements.txt
 ```
+That's it!
 
-## Author
+## Using
+[TBD]
 
-👤 **Gabe M. LaFond**
+## Contributing
+For contributors to the project; do this before making your first commit:
 
-* Github: [@ExamDay](https://github.com/ExamDay)
-* LinkedIn: [@gabe-lafond-1065991b4](https://linkedin.com/in/gabe-lafond-1065991b4)
+- Install pre-commit
+```bash
+cd /path/to/this/repository/
+sudo apt install pre-commit
+pre-commit install
+```
+(we do all of our development on linux for now)
 
-## 🤝 Contributing
+- To test updates to the readme and other GitHub flavored markdown, simply install Grip
+and feed it your desired file.
+```bash
+pip3 install grip
+python3 -m grip README.md
+```
+- Then follow the link provided by the Grip sever for a live preview of your work.
 
-Contributions, issues and feature requests are welcome!
+- When satisfied with your changes you can compile to an html file with:
+```bash
+python3 -m grip README.md --export README.html
+```
 
-Feel free to check [issues page](https://github.com/ExamDay/InfoTorch/issues). You can also take a look at the [contributing guide](https://github.com/ExamDay/InfoTorch/blob/master/CONTRIBUTING.md).
+## Authors
+* **Gabe M. LaFond** - *Initial work* - [ExamDay](https://github.com/ExamDay)
 
-## Show your support
+See also the list of [contributors](https://github.com/ExamDay/InfoTorch/contributors) who participated in this project.
 
-Give a ⭐️ if this project helped you!
-
-
-## 📝 License
-
-Copyright © 2022 [Gabe M. LaFond](https://github.com/ExamDay).
-
-This project is [MIT](https://github.com/ExamDay/InfoTorch/blob/master/LICENSE) licensed.
-
-***
-_This README was generated with ❤️ by [readme-md-generator](https://github.com/kefranabg/readme-md-generator)_
+## License
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
