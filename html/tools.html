@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>tools API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>tools</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import torch
+import torch.nn as nn
+from torch.distributions import Normal
+
+def skewness_fn(x, dim=1):
+    &#39;&#39;&#39;Calculates skewness of data &#34;x&#34; along dimension &#34;dim&#34;.&#39;&#39;&#39;
+    std, mean = torch.std_mean(x, dim)
+    n = torch.Tensor([x.shape[dim]]).to(x.device)
+    eps = 1e-6  # for stability
+
+    sample_bias_adjustment = torch.sqrt(n * (n - 1)) / (n - 2)
+    skewness = sample_bias_adjustment * (
+        (torch.sum((x.T - mean.unsqueeze(dim).T).T.pow(3), dim) / n)
+        / std.pow(3).clamp(min=eps)
+    )
+    return skewness
+
+
+def kurtosis_fn(x, dim=1):
+    &#39;&#39;&#39;Calculates kurtosis of data &#34;x&#34; along dimension &#34;dim&#34;.&#39;&#39;&#39;
+    std, mean = torch.std_mean(x, dim)
+    n = torch.Tensor([x.shape[dim]]).to(x.device)
+    eps = 1e-6  # for stability
+
+    sample_bias_adjustment = (n - 1) / ((n - 2) * (n - 3))
+    kurtosis = sample_bias_adjustment * (
+        (n + 1)
+        * (
+            (torch.sum((x.T - mean.unsqueeze(dim).T).T.pow(4), dim) / n)
+            / std.pow(4).clamp(min=eps)
+        )
+        - 3 * (n - 1)
+    )
+    return kurtosis
+
+def bimodality_index(x, dim=1):
+    &#39;&#39;&#39;
+    Used to detect bimodality (or multimodality) of dataset(s) given a tensor &#34;x&#34; containing the
+    data and a dimension &#34;dim&#34; along which to calculate.  The logic behind this index is that a
+    bimodal (or multimodal) distribution with light tails will have very low kurtosis, an asymmetric
+    character, or both – all of which increase this index.  The smaller this value is the more
+    likely the data are to follow a unimodal distribution.  As a rule: if return value ≤ 0.555
+    (bimodal index for uniform distribution), the data are considered to follow a unimodal
+    distribution. Otherwise, they follow a bimodal or multimodal distribution.
+    &#39;&#39;&#39;
+    # calculate standard deviation and mean of dataset(s)
+    std, mean = torch.std_mean(x, dim)
+    # get number of samples in dataset(s)
+    n = torch.Tensor([x.shape[dim]]).to(x.device)
+    eps = 1e-6  # for stability
+
+    # calculate skewness:
+    # repeating most of the skewness function here to avoid recomputation of standard devation and mean
+    sample_bias_adjustment = torch.sqrt(n * (n - 1)) / (n - 2)
+    skew = sample_bias_adjustment * (
+        (torch.sum((x.T - mean.unsqueeze(dim).T).T.pow(3), dim) / n)
+        / std.pow(3).clamp(min=eps)
+    )
+
+    # calculate kurtosis:
+    # repeating most the kurtosis function here to avoid recomputation of standard devation and mean
+    sample_bias_adjustment = (n - 1) / ((n - 2) * (n - 3))
+    kurt = sample_bias_adjustment * (
+        (n + 1)
+        * (
+            (torch.sum((z.T - mean.unsqueeze(dim).T).T.pow(4), dim) / n)
+            / std.pow(4).clamp(min=eps)
+        )
+        - 3 * (n - 1)
+    )
+
+    # calculate bimodality index:
+    BC = (skew.pow(2) + 1) / (kurt + 3 * ((n - 2).pow(2) / ((n - 2) * (n - 3))))
+
+    return BC
+
+def KernelDensityEstimate(
+    data,
+    x_tics=None,
+    start=-9,
+    end=9,
+    kernel=Normal(loc=0, scale=1),
+    bandwidth_adjustment=1,
+    dim=1,
+):
+    &#39;&#39;&#39;Estimates the probability density function of a batch of data.&#39;&#39;&#39;
+    # convert to positive index (important for unsqueezing)
+    if dim &lt; 0:
+        dim = len(data.shape) + dim
+        if dim &gt; (len(data.shape) - 1) or dim &lt; 0:
+            raise IndexError
+
+    def kde_prob(
+        data,
+        x,
+        dim=dim,
+        kernel=Normal(loc=0, scale=1),
+        bandwidth_adjustment=1,
+    ):
+        &#39;&#39;&#39;
+        Returns the probability of the items in tensor &#39;x&#39; according to the PDF estimated by a KDE.
+        This function is memory intensive.
+        &#39;&#39;&#39;
+        data = data.flatten(dim)
+        n = data.shape[dim]
+        silvermans_factor = ((4 * torch.std(data, dim).pow(5)) / (3 * n)).pow(1 / 5)
+
+        bw = silvermans_factor * bandwidth_adjustment
+
+        bw = bw.view(
+            *bw.shape, *[1 for _ in range(len(data.shape) + 1 - len(bw.shape))]
+        )
+        a = data.unsqueeze(dim) - x.unsqueeze(1)
+        a = a / bw
+        a = kernel.log_prob(a)
+        a = torch.exp(a)
+        a = bw ** (-1) * a
+        a = a.sum(dim=dim + 1)
+        prob = a / n
+
+        return prob
+
+    if x_tics is None:
+        assert start and end
+        assert end &gt; start
+        a = max(torch.min(data).item(), start)  # lower integration bound
+        b = min(torch.max(data).item(), end)  # upper integration bound
+        x_tics = torch.Tensor(np.linspace(a, b, steps)).to(data.device)
+    else:
+        assert isinstance(x_tics, torch.Tensor)
+        x_tics = x_tics.to(data.device)
+    x_tics.requires_grad = True
+    kde_y_tics = kde_prob(
+        data,
+        x_tics,
+        kernel=kernel,
+        bandwidth_adjustment=bandwidth_adjustment,
+    )
+    return kde_y_tics
+
+class Normal_Model(nn.Module):
+    &#39;&#39;&#39;
+    Example of a module for modeling a probability distribution. This is set up with all pieces
+    required for use with the rest of this package. (constrain, forward, and log_prob methods)
+    &#39;&#39;&#39;
+    def __init__(
+        self,
+        init_mean: torch.Tensor = torch.Tensor([0]),
+        init_std: torch.Tensor = torch.Tensor([1]),
+    ):
+        super(Normal_Model, self).__init__()
+        self.mean = nn.Parameter(init_mean, requires_grad=True)
+        self.std = nn.Parameter(init_std, requires_grad=True)
+        # constant
+        self.ln2p = nn.Parameter(
+            torch.log(2 * torch.Tensor([torch.pi])), requires_grad=False
+        )
+
+    def constrain(self):
+        &#39;&#39;&#39;
+        Method to run on &#34;constrain&#34; step of training. Easiest method for optimization under
+        constraint is Projection Optimization by simply clamping parameters to bounds after each
+        update. This is certainly not the most efficent way, but it gets the job done.
+        &#39;&#39;&#39;
+        #  can&#39;t have negative standard deviation so lets prevent that:
+        eps = 1e-6
+        self.std.data = model.std.data.clamp(min=eps)
+
+    def log_prob(self, x):
+        &#39;&#39;&#39;
+        Returns the log probability of the items in tensor &#39;x&#39; according to the probability
+        distribution of the module.
+        &#39;&#39;&#39;
+        return (
+            -torch.log(self.std.unsqueeze(-1))
+            - (self.ln2p / 2)
+            - ((x - self.mean.unsqueeze(-1)) / self.std.unsqueeze(-1)).pow(2) / 2
+        )
+
+    def forward(self, x):
+        &#39;&#39;&#39;Returns the probability of the items in tensor &#39;x&#39; according to the probability distribution of the module.&#39;&#39;&#39;
+        return self.log_prob(x).exp()
+
+def MLE_Fit(model, data, dim=1, lr=5e-2, iters=250):
+    &#39;&#39;&#39;
+    Fits the parameters of the provided model to the provided data. Provided model must have
+    implimented log_prob() and constrain() methods.
+    &#39;&#39;&#39;
+    optimizer = torch.optim.RMSprop(model.parameters(), lr=lr)
+    #  print(&#34;model parameters:&#34;, [x for x in model.parameters()])
+    #  data = data.flatten(dim)
+    for i in range(iters):
+        nll = -torch.sum(model.log_prob(data))
+        nll.backward()
+        optimizer.step()
+        optimizer.zero_grad()
+        model.constrain()
+
+def ECDF(x: torch.Tensor, dim: int = 0):
+    &#39;&#39;&#39;
+    Finds empirical cumulative distribution function of provided data &#34;x&#34; along dimension &#34;dim&#34;.
+    &#39;&#39;&#39;
+    x = torch.sort(x.flatten(dim), dim=dim).values
+    n = x.shape[-1]
+    cum = torch.arange(1, n + 1).to(x.device) / n
+    cum = cum.repeat(*x.shape[0:-1], 1)  # one for each univariate sample
+    return torch.cat((x.unsqueeze(dim), cum.unsqueeze(dim)), dim)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="tools.ECDF"><code class="name flex">
+<span>def <span class="ident">ECDF</span></span>(<span>x: torch.Tensor, dim: int = 0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Finds empirical cumulative distribution function of provided data "x" along dimension "dim".</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ECDF(x: torch.Tensor, dim: int = 0):
+    &#39;&#39;&#39;
+    Finds empirical cumulative distribution function of provided data &#34;x&#34; along dimension &#34;dim&#34;.
+    &#39;&#39;&#39;
+    x = torch.sort(x.flatten(dim), dim=dim).values
+    n = x.shape[-1]
+    cum = torch.arange(1, n + 1).to(x.device) / n
+    cum = cum.repeat(*x.shape[0:-1], 1)  # one for each univariate sample
+    return torch.cat((x.unsqueeze(dim), cum.unsqueeze(dim)), dim)</code></pre>
+</details>
+</dd>
+<dt id="tools.KernelDensityEstimate"><code class="name flex">
+<span>def <span class="ident">KernelDensityEstimate</span></span>(<span>data, x_tics=None, start=-9, end=9, kernel=Normal(loc: 0.0, scale: 1.0), bandwidth_adjustment=1, dim=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Estimates the probability density function of a batch of data.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def KernelDensityEstimate(
+    data,
+    x_tics=None,
+    start=-9,
+    end=9,
+    kernel=Normal(loc=0, scale=1),
+    bandwidth_adjustment=1,
+    dim=1,
+):
+    &#39;&#39;&#39;Estimates the probability density function of a batch of data.&#39;&#39;&#39;
+    # convert to positive index (important for unsqueezing)
+    if dim &lt; 0:
+        dim = len(data.shape) + dim
+        if dim &gt; (len(data.shape) - 1) or dim &lt; 0:
+            raise IndexError
+
+    def kde_prob(
+        data,
+        x,
+        dim=dim,
+        kernel=Normal(loc=0, scale=1),
+        bandwidth_adjustment=1,
+    ):
+        &#39;&#39;&#39;
+        Returns the probability of the items in tensor &#39;x&#39; according to the PDF estimated by a KDE.
+        This function is memory intensive.
+        &#39;&#39;&#39;
+        data = data.flatten(dim)
+        n = data.shape[dim]
+        silvermans_factor = ((4 * torch.std(data, dim).pow(5)) / (3 * n)).pow(1 / 5)
+
+        bw = silvermans_factor * bandwidth_adjustment
+
+        bw = bw.view(
+            *bw.shape, *[1 for _ in range(len(data.shape) + 1 - len(bw.shape))]
+        )
+        a = data.unsqueeze(dim) - x.unsqueeze(1)
+        a = a / bw
+        a = kernel.log_prob(a)
+        a = torch.exp(a)
+        a = bw ** (-1) * a
+        a = a.sum(dim=dim + 1)
+        prob = a / n
+
+        return prob
+
+    if x_tics is None:
+        assert start and end
+        assert end &gt; start
+        a = max(torch.min(data).item(), start)  # lower integration bound
+        b = min(torch.max(data).item(), end)  # upper integration bound
+        x_tics = torch.Tensor(np.linspace(a, b, steps)).to(data.device)
+    else:
+        assert isinstance(x_tics, torch.Tensor)
+        x_tics = x_tics.to(data.device)
+    x_tics.requires_grad = True
+    kde_y_tics = kde_prob(
+        data,
+        x_tics,
+        kernel=kernel,
+        bandwidth_adjustment=bandwidth_adjustment,
+    )
+    return kde_y_tics</code></pre>
+</details>
+</dd>
+<dt id="tools.MLE_Fit"><code class="name flex">
+<span>def <span class="ident">MLE_Fit</span></span>(<span>model, data, dim=1, lr=0.05, iters=250)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Fits the parameters of the provided model to the provided data. Provided model must have
+implimented log_prob() and constrain() methods.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def MLE_Fit(model, data, dim=1, lr=5e-2, iters=250):
+    &#39;&#39;&#39;
+    Fits the parameters of the provided model to the provided data. Provided model must have
+    implimented log_prob() and constrain() methods.
+    &#39;&#39;&#39;
+    optimizer = torch.optim.RMSprop(model.parameters(), lr=lr)
+    #  print(&#34;model parameters:&#34;, [x for x in model.parameters()])
+    #  data = data.flatten(dim)
+    for i in range(iters):
+        nll = -torch.sum(model.log_prob(data))
+        nll.backward()
+        optimizer.step()
+        optimizer.zero_grad()
+        model.constrain()</code></pre>
+</details>
+</dd>
+<dt id="tools.bimodality_index"><code class="name flex">
+<span>def <span class="ident">bimodality_index</span></span>(<span>x, dim=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Used to detect bimodality (or multimodality) of dataset(s) given a tensor "x" containing the
+data and a dimension "dim" along which to calculate.
+The logic behind this index is that a
+bimodal (or multimodal) distribution with light tails will have very low kurtosis, an asymmetric
+character, or both – all of which increase this index.
+The smaller this value is the more
+likely the data are to follow a unimodal distribution.
+As a rule: if return value ≤ 0.555
+(bimodal index for uniform distribution), the data are considered to follow a unimodal
+distribution. Otherwise, they follow a bimodal or multimodal distribution.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def bimodality_index(x, dim=1):
+    &#39;&#39;&#39;
+    Used to detect bimodality (or multimodality) of dataset(s) given a tensor &#34;x&#34; containing the
+    data and a dimension &#34;dim&#34; along which to calculate.  The logic behind this index is that a
+    bimodal (or multimodal) distribution with light tails will have very low kurtosis, an asymmetric
+    character, or both – all of which increase this index.  The smaller this value is the more
+    likely the data are to follow a unimodal distribution.  As a rule: if return value ≤ 0.555
+    (bimodal index for uniform distribution), the data are considered to follow a unimodal
+    distribution. Otherwise, they follow a bimodal or multimodal distribution.
+    &#39;&#39;&#39;
+    # calculate standard deviation and mean of dataset(s)
+    std, mean = torch.std_mean(x, dim)
+    # get number of samples in dataset(s)
+    n = torch.Tensor([x.shape[dim]]).to(x.device)
+    eps = 1e-6  # for stability
+
+    # calculate skewness:
+    # repeating most of the skewness function here to avoid recomputation of standard devation and mean
+    sample_bias_adjustment = torch.sqrt(n * (n - 1)) / (n - 2)
+    skew = sample_bias_adjustment * (
+        (torch.sum((x.T - mean.unsqueeze(dim).T).T.pow(3), dim) / n)
+        / std.pow(3).clamp(min=eps)
+    )
+
+    # calculate kurtosis:
+    # repeating most the kurtosis function here to avoid recomputation of standard devation and mean
+    sample_bias_adjustment = (n - 1) / ((n - 2) * (n - 3))
+    kurt = sample_bias_adjustment * (
+        (n + 1)
+        * (
+            (torch.sum((z.T - mean.unsqueeze(dim).T).T.pow(4), dim) / n)
+            / std.pow(4).clamp(min=eps)
+        )
+        - 3 * (n - 1)
+    )
+
+    # calculate bimodality index:
+    BC = (skew.pow(2) + 1) / (kurt + 3 * ((n - 2).pow(2) / ((n - 2) * (n - 3))))
+
+    return BC</code></pre>
+</details>
+</dd>
+<dt id="tools.kurtosis_fn"><code class="name flex">
+<span>def <span class="ident">kurtosis_fn</span></span>(<span>x, dim=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculates kurtosis of data "x" along dimension "dim".</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def kurtosis_fn(x, dim=1):
+    &#39;&#39;&#39;Calculates kurtosis of data &#34;x&#34; along dimension &#34;dim&#34;.&#39;&#39;&#39;
+    std, mean = torch.std_mean(x, dim)
+    n = torch.Tensor([x.shape[dim]]).to(x.device)
+    eps = 1e-6  # for stability
+
+    sample_bias_adjustment = (n - 1) / ((n - 2) * (n - 3))
+    kurtosis = sample_bias_adjustment * (
+        (n + 1)
+        * (
+            (torch.sum((x.T - mean.unsqueeze(dim).T).T.pow(4), dim) / n)
+            / std.pow(4).clamp(min=eps)
+        )
+        - 3 * (n - 1)
+    )
+    return kurtosis</code></pre>
+</details>
+</dd>
+<dt id="tools.skewness_fn"><code class="name flex">
+<span>def <span class="ident">skewness_fn</span></span>(<span>x, dim=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculates skewness of data "x" along dimension "dim".</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def skewness_fn(x, dim=1):
+    &#39;&#39;&#39;Calculates skewness of data &#34;x&#34; along dimension &#34;dim&#34;.&#39;&#39;&#39;
+    std, mean = torch.std_mean(x, dim)
+    n = torch.Tensor([x.shape[dim]]).to(x.device)
+    eps = 1e-6  # for stability
+
+    sample_bias_adjustment = torch.sqrt(n * (n - 1)) / (n - 2)
+    skewness = sample_bias_adjustment * (
+        (torch.sum((x.T - mean.unsqueeze(dim).T).T.pow(3), dim) / n)
+        / std.pow(3).clamp(min=eps)
+    )
+    return skewness</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="tools.Normal_Model"><code class="flex name class">
+<span>class <span class="ident">Normal_Model</span></span>
+<span>(</span><span>init_mean: torch.Tensor = tensor([0.]), init_std: torch.Tensor = tensor([1.]))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Example of a module for modeling a probability distribution. This is set up with all pieces
+required for use with the rest of this package. (constrain, forward, and log_prob methods)</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Normal_Model(nn.Module):
+    &#39;&#39;&#39;
+    Example of a module for modeling a probability distribution. This is set up with all pieces
+    required for use with the rest of this package. (constrain, forward, and log_prob methods)
+    &#39;&#39;&#39;
+    def __init__(
+        self,
+        init_mean: torch.Tensor = torch.Tensor([0]),
+        init_std: torch.Tensor = torch.Tensor([1]),
+    ):
+        super(Normal_Model, self).__init__()
+        self.mean = nn.Parameter(init_mean, requires_grad=True)
+        self.std = nn.Parameter(init_std, requires_grad=True)
+        # constant
+        self.ln2p = nn.Parameter(
+            torch.log(2 * torch.Tensor([torch.pi])), requires_grad=False
+        )
+
+    def constrain(self):
+        &#39;&#39;&#39;
+        Method to run on &#34;constrain&#34; step of training. Easiest method for optimization under
+        constraint is Projection Optimization by simply clamping parameters to bounds after each
+        update. This is certainly not the most efficent way, but it gets the job done.
+        &#39;&#39;&#39;
+        #  can&#39;t have negative standard deviation so lets prevent that:
+        eps = 1e-6
+        self.std.data = model.std.data.clamp(min=eps)
+
+    def log_prob(self, x):
+        &#39;&#39;&#39;
+        Returns the log probability of the items in tensor &#39;x&#39; according to the probability
+        distribution of the module.
+        &#39;&#39;&#39;
+        return (
+            -torch.log(self.std.unsqueeze(-1))
+            - (self.ln2p / 2)
+            - ((x - self.mean.unsqueeze(-1)) / self.std.unsqueeze(-1)).pow(2) / 2
+        )
+
+    def forward(self, x):
+        &#39;&#39;&#39;Returns the probability of the items in tensor &#39;x&#39; according to the probability distribution of the module.&#39;&#39;&#39;
+        return self.log_prob(x).exp()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="tools.Normal_Model.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="tools.Normal_Model.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="tools.Normal_Model.constrain"><code class="name flex">
+<span>def <span class="ident">constrain</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method to run on "constrain" step of training. Easiest method for optimization under
+constraint is Projection Optimization by simply clamping parameters to bounds after each
+update. This is certainly not the most efficent way, but it gets the job done.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def constrain(self):
+    &#39;&#39;&#39;
+    Method to run on &#34;constrain&#34; step of training. Easiest method for optimization under
+    constraint is Projection Optimization by simply clamping parameters to bounds after each
+    update. This is certainly not the most efficent way, but it gets the job done.
+    &#39;&#39;&#39;
+    #  can&#39;t have negative standard deviation so lets prevent that:
+    eps = 1e-6
+    self.std.data = model.std.data.clamp(min=eps)</code></pre>
+</details>
+</dd>
+<dt id="tools.Normal_Model.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, x) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the probability of the items in tensor 'x' according to the probability distribution of the module.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def forward(self, x):
+    &#39;&#39;&#39;Returns the probability of the items in tensor &#39;x&#39; according to the probability distribution of the module.&#39;&#39;&#39;
+    return self.log_prob(x).exp()</code></pre>
+</details>
+</dd>
+<dt id="tools.Normal_Model.log_prob"><code class="name flex">
+<span>def <span class="ident">log_prob</span></span>(<span>self, x)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the log probability of the items in tensor 'x' according to the probability
+distribution of the module.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def log_prob(self, x):
+    &#39;&#39;&#39;
+    Returns the log probability of the items in tensor &#39;x&#39; according to the probability
+    distribution of the module.
+    &#39;&#39;&#39;
+    return (
+        -torch.log(self.std.unsqueeze(-1))
+        - (self.ln2p / 2)
+        - ((x - self.mean.unsqueeze(-1)) / self.std.unsqueeze(-1)).pow(2) / 2
+    )</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="tools.ECDF" href="#tools.ECDF">ECDF</a></code></li>
+<li><code><a title="tools.KernelDensityEstimate" href="#tools.KernelDensityEstimate">KernelDensityEstimate</a></code></li>
+<li><code><a title="tools.MLE_Fit" href="#tools.MLE_Fit">MLE_Fit</a></code></li>
+<li><code><a title="tools.bimodality_index" href="#tools.bimodality_index">bimodality_index</a></code></li>
+<li><code><a title="tools.kurtosis_fn" href="#tools.kurtosis_fn">kurtosis_fn</a></code></li>
+<li><code><a title="tools.skewness_fn" href="#tools.skewness_fn">skewness_fn</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="tools.Normal_Model" href="#tools.Normal_Model">Normal_Model</a></code></h4>
+<ul class="">
+<li><code><a title="tools.Normal_Model.constrain" href="#tools.Normal_Model.constrain">constrain</a></code></li>
+<li><code><a title="tools.Normal_Model.dump_patches" href="#tools.Normal_Model.dump_patches">dump_patches</a></code></li>
+<li><code><a title="tools.Normal_Model.forward" href="#tools.Normal_Model.forward">forward</a></code></li>
+<li><code><a title="tools.Normal_Model.log_prob" href="#tools.Normal_Model.log_prob">log_prob</a></code></li>
+<li><code><a title="tools.Normal_Model.training" href="#tools.Normal_Model.training">training</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

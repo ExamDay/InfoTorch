@@ -31,18 +31,25 @@ pre-commit install
 ```
 (we do all of our development on linux for now)
 
+- Make sure to update the documentation to include your changes before commiting:
+```bash
+pdoc --html tools.py --force
+```
+
 - To test updates to the readme and other GitHub flavored markdown, simply install Grip
 and feed it your desired file.
 ```bash
 pip3 install grip
 python3 -m grip README.md
 ```
+
 - Then follow the link provided by the Grip sever for a live preview of your work.
 
 - When satisfied with your changes you can compile to an html file with:
 ```bash
 python3 -m grip README.md --export README.html
 ```
+
 
 ## Authors
 * **Gabe M. LaFond** - *Initial work* - [ExamDay](https://github.com/ExamDay)

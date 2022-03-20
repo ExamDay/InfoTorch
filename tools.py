@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 from torch.distributions import Normal
 
 def skewness_fn(x, dim=1):
@@ -82,7 +83,7 @@ def KernelDensityEstimate(
     bandwidth_adjustment=1,
     dim=1,
 ):
-    '''estimates the probability density function of a batch of data'''
+    '''Estimates the probability density function of a batch of data.'''
     # convert to positive index (important for unsqueezing)
     if dim < 0:
         dim = len(data.shape) + dim
@@ -96,7 +97,10 @@ def KernelDensityEstimate(
         kernel=Normal(loc=0, scale=1),
         bandwidth_adjustment=1,
     ):
-        '''This function is memory intensive'''
+        '''
+        Returns the probability of the items in tensor 'x' according to the PDF estimated by a KDE.
+        This function is memory intensive.
+        '''
         data = data.flatten(dim)
         n = data.shape[dim]
         silvermans_factor = ((4 * torch.std(data, dim).pow(5)) / (3 * n)).pow(1 / 5)
@@ -137,7 +141,7 @@ def KernelDensityEstimate(
 class Normal_Model(nn.Module):
     '''
     Example of a module for modeling a probability distribution. This is set up with all pieces
-    required for the rest of this package.
+    required for use with the rest of this package. (constrain, forward, and log_prob methods)
     '''
     def __init__(
         self,
