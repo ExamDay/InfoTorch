@@ -1,5 +1,6 @@
 # InfoTorch
-### Facilitates hardware acceleration (GPU, TPU) of advanced statistical modeling, analyses, and tests in PyTorch.
+### Advanced statistical modeling, analyses, and tests in PyTorch.
+(easy hardware acceleration (GPU, TPU))
 
 ## Installing
 - Clone this repository wherever you want
