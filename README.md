@@ -1,7 +1,7 @@
 # InfoTorch
 ### Advanced statistical modeling, analyses, and tests accelerated with PyTorch.
 
-## Installing (linux only for now)
+## Installing
 - Clone this repository wherever you want
 
 - Create vitual environment and active it (if you're radical like me and addicted to danger you can skip this step)
