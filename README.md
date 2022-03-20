@@ -36,6 +36,11 @@ pre-commit install
 pdoc --html tools.py --force
 ```
 
+- Also Make sure to include any new dependencies in the requirements.txt before commiting with:
+```bash
+pip3 freeze > requirements.txt
+```
+
 - To test updates to the readme and other GitHub flavored markdown, simply install Grip
 and feed it your desired file.
 ```bash
