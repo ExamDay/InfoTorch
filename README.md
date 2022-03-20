@@ -1,6 +1,5 @@
-<h1 align="center">InfoTorch:</h1>
-<br>
-<h2 align="center">Advanced statistical modeling, analyses, and tests accelerated with PyTorch</h2>
+# InfoTorch
+## Advanced statistical modeling, analyses, and tests accelerated with PyTorch.
 
 ## Installing (linux only for now)
 - Clone this repository wherever you want
