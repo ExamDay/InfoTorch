@@ -2,6 +2,7 @@ import torch
 from torch.distributions import Normal
 
 def skewness_fn(x, dim=1):
+    '''Calculates skewness of data "x" along dimension "dim".'''
     std, mean = torch.std_mean(x, dim)
     n = torch.Tensor([x.shape[dim]]).to(x.device)
     eps = 1e-6  # for stability
@@ -15,6 +16,7 @@ def skewness_fn(x, dim=1):
 
 
 def kurtosis_fn(x, dim=1):
+    '''Calculates kurtosis of data "x" along dimension "dim".'''
     std, mean = torch.std_mean(x, dim)
     n = torch.Tensor([x.shape[dim]]).to(x.device)
     eps = 1e-6  # for stability
@@ -31,15 +33,15 @@ def kurtosis_fn(x, dim=1):
     return kurtosis
 
 def bimodality_index(x, dim=1):
-    """
-    Used to detect bimodality (or multimodality) of dataset(s).
-    The logic behind this index is that a bimodal (or multimodal) distribution with light
-    tails will have very low kurtosis, an asymmetric character, or both – all of which increase this
-    index.
-    The smaller this value is the more likely the data are to follow a unimodal distribution.
-    As a rule: if return value ≤ 0.555 (bimodal index for uniform distribution), the data are considered
-    to follow a unimodal distribution. Otherwise, they follow a bimodal or multimodal distribution.
-    """
+    '''
+    Used to detect bimodality (or multimodality) of dataset(s) given a tensor "x" containing the
+    data and a dimension "dim" along which to calculate.  The logic behind this index is that a
+    bimodal (or multimodal) distribution with light tails will have very low kurtosis, an asymmetric
+    character, or both – all of which increase this index.  The smaller this value is the more
+    likely the data are to follow a unimodal distribution.  As a rule: if return value ≤ 0.555
+    (bimodal index for uniform distribution), the data are considered to follow a unimodal
+    distribution. Otherwise, they follow a bimodal or multimodal distribution.
+    '''
     # calculate standard deviation and mean of dataset(s)
     std, mean = torch.std_mean(x, dim)
     # get number of samples in dataset(s)
@@ -80,7 +82,7 @@ def KernelDensityEstimate(
     bandwidth_adjustment=1,
     dim=1,
 ):
-    """estimates the probability density function of a batch of data"""
+    '''estimates the probability density function of a batch of data'''
     # convert to positive index (important for unsqueezing)
     if dim < 0:
         dim = len(data.shape) + dim
@@ -94,7 +96,7 @@ def KernelDensityEstimate(
         kernel=Normal(loc=0, scale=1),
         bandwidth_adjustment=1,
     ):
-        """This function is memory intensive"""
+        '''This function is memory intensive'''
         data = data.flatten(dim)
         n = data.shape[dim]
         silvermans_factor = ((4 * torch.std(data, dim).pow(5)) / (3 * n)).pow(1 / 5)
@@ -131,3 +133,71 @@ def KernelDensityEstimate(
         bandwidth_adjustment=bandwidth_adjustment,
     )
     return kde_y_tics
+
+class Normal_Model(nn.Module):
+    '''
+    Example of a module for modeling a probability distribution. This is set up with all pieces
+    required for the rest of this package.
+    '''
+    def __init__(
+        self,
+        init_mean: torch.Tensor = torch.Tensor([0]),
+        init_std: torch.Tensor = torch.Tensor([1]),
+    ):
+        super(Normal_Model, self).__init__()
+        self.mean = nn.Parameter(init_mean, requires_grad=True)
+        self.std = nn.Parameter(init_std, requires_grad=True)
+        # constant
+        self.ln2p = nn.Parameter(
+            torch.log(2 * torch.Tensor([torch.pi])), requires_grad=False
+        )
+
+    def constrain(self):
+        '''
+        Method to run on "constrain" step of training. Easiest method for optimization under
+        constraint is Projection Optimization by simply clamping parameters to bounds after each
+        update. This is certainly not the most efficent way, but it gets the job done.
+        '''
+        #  can't have negative standard deviation so lets prevent that:
+        eps = 1e-6
+        self.std.data = model.std.data.clamp(min=eps)
+
+    def log_prob(self, x):
+        '''
+        Returns the log probability of the items in tensor 'x' according to the probability
+        distribution of the module.
+        '''
+        return (
+            -torch.log(self.std.unsqueeze(-1))
+            - (self.ln2p / 2)
+            - ((x - self.mean.unsqueeze(-1)) / self.std.unsqueeze(-1)).pow(2) / 2
+        )
+
+    def forward(self, x):
+        '''Returns the probability of the items in tensor 'x' according to the probability distribution of the module.'''
+        return self.log_prob(x).exp()
+
+def MLE_Fit(model, data, dim=1, lr=5e-2, iters=250):
+    '''
+    Fits the parameters of the provided model to the provided data. Provided model must have
+    implimented log_prob() and constrain() methods.
+    '''
+    optimizer = torch.optim.RMSprop(model.parameters(), lr=lr)
+    #  print("model parameters:", [x for x in model.parameters()])
+    #  data = data.flatten(dim)
+    for i in range(iters):
+        nll = -torch.sum(model.log_prob(data))
+        nll.backward()
+        optimizer.step()
+        optimizer.zero_grad()
+        model.constrain()
+
+def ECDF(x: torch.Tensor, dim: int = 0):
+    '''
+    Finds empirical cumulative distribution function of provided data "x" along dimension "dim".
+    '''
+    x = torch.sort(x.flatten(dim), dim=dim).values
+    n = x.shape[-1]
+    cum = torch.arange(1, n + 1).to(x.device) / n
+    cum = cum.repeat(*x.shape[0:-1], 1)  # one for each univariate sample
+    return torch.cat((x.unsqueeze(dim), cum.unsqueeze(dim)), dim)

@@ -1,0 +1,15 @@
+{
+  "name": "InfoTorch",
+  "version": "0.1",
+  "description": "Advanced statistical modeling, analyses, and tests with with PyTorch.",
+  "author": "Gabe M. LaFond",
+  "license": "MIT",
+  "homepage": "https://github.com/ExamDay/InfoTorch.git#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ExamDay/InfoTorch.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ExamDay/InfoTorch/issues"
+  }
+}
