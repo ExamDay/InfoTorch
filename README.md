@@ -64,7 +64,7 @@ KernelDensityEstimate(
 MLE_Fit(model: torch.nn.Module, data: torch.Tensor, dim: int=1, lr: float=5e-2, iters: int=250)
 ```
 
-- Fits the parameters of the provided model to the provided data. Provided model must have implimented log_prob() and constrain() methods.
+- Fits the parameters of the provided model to the provided data. Provided model must have implimented log_prob() and constrain() methods, and paraters set to some initial value.
 
 ```python3
 ECDF(x: torch.Tensor, dim: int = 0)
@@ -79,7 +79,8 @@ Normal_Model(
 	init_std: torch.Tensor = torch.Tensor([1]),
 )
 ```
-- Example of a module for modeling a probability distribution. This is set up with all pieces required for use with the rest of this package. (constrain, forward, and log_prob methods)
+- Example of a module for modeling a probability distribution. This is set up with all pieces
+  required for use with the rest of this package. (initial parameters, constrain, forward, and log_prob methods)
 
 ## Contributing
 For contributors to the project; do this before making your first commit:

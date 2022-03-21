@@ -141,7 +141,8 @@ def KernelDensityEstimate(
 class Normal_Model(nn.Module):
     '''
     Example of a module for modeling a probability distribution. This is set up with all pieces
-    required for use with the rest of this package. (constrain, forward, and log_prob methods)
+    required for use with the rest of this package. (initial parameters, constrain, forward, and
+    log_prob methods)
     '''
     def __init__(
         self,
@@ -184,7 +185,7 @@ class Normal_Model(nn.Module):
 def MLE_Fit(model, data, dim=1, lr=5e-2, iters=250):
     '''
     Fits the parameters of the provided model to the provided data. Provided model must have
-    implimented log_prob() and constrain() methods.
+    implimented log_prob() and constrain() methods, and paraters set to some initial value.
     '''
     optimizer = torch.optim.RMSprop(model.parameters(), lr=lr)
     #  print("model parameters:", [x for x in model.parameters()])
