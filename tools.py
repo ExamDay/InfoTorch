@@ -206,3 +206,4 @@ def ECDF(x: torch.Tensor, dim: int = 0):
     cum = torch.arange(1, n + 1).to(x.device) / n
     cum = cum.repeat(*x.shape[0:-1], 1)  # one for each univariate sample
     return torch.cat((x.unsqueeze(dim), cum.unsqueeze(dim)), dim)
+

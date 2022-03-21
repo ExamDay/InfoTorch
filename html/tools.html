@@ -169,7 +169,8 @@ def KernelDensityEstimate(
 class Normal_Model(nn.Module):
     &#39;&#39;&#39;
     Example of a module for modeling a probability distribution. This is set up with all pieces
-    required for use with the rest of this package. (constrain, forward, and log_prob methods)
+    required for use with the rest of this package. (initial parameters; as well as implimented
+    constrain, forward, and log_prob methods)
     &#39;&#39;&#39;
     def __init__(
         self,
@@ -212,7 +213,7 @@ class Normal_Model(nn.Module):
 def MLE_Fit(model, data, dim=1, lr=5e-2, iters=250):
     &#39;&#39;&#39;
     Fits the parameters of the provided model to the provided data. Provided model must have
-    implimented log_prob() and constrain() methods.
+    implimented log_prob() and constrain() methods, and paraters set to some initial value.
     &#39;&#39;&#39;
     optimizer = torch.optim.RMSprop(model.parameters(), lr=lr)
     #  print(&#34;model parameters:&#34;, [x for x in model.parameters()])
@@ -341,7 +342,7 @@ def ECDF(x: torch.Tensor, dim: int = 0):
 </code></dt>
 <dd>
 <div class="desc"><p>Fits the parameters of the provided model to the provided data. Provided model must have
-implimented log_prob() and constrain() methods.</p></div>
+implimented log_prob() and constrain() methods, and paraters set to some initial value.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -349,7 +350,7 @@ implimented log_prob() and constrain() methods.</p></div>
 <pre><code class="python">def MLE_Fit(model, data, dim=1, lr=5e-2, iters=250):
     &#39;&#39;&#39;
     Fits the parameters of the provided model to the provided data. Provided model must have
-    implimented log_prob() and constrain() methods.
+    implimented log_prob() and constrain() methods, and paraters set to some initial value.
     &#39;&#39;&#39;
     optimizer = torch.optim.RMSprop(model.parameters(), lr=lr)
     #  print(&#34;model parameters:&#34;, [x for x in model.parameters()])
@@ -483,7 +484,8 @@ distribution. Otherwise, they follow a bimodal or multimodal distribution.</p></
 </code></dt>
 <dd>
 <div class="desc"><p>Example of a module for modeling a probability distribution. This is set up with all pieces
-required for use with the rest of this package. (constrain, forward, and log_prob methods)</p>
+required for use with the rest of this package. (initial parameters; as well as implimented
+constrain, forward, and log_prob methods)</p>
 <p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
 <details class="source">
 <summary>
@@ -492,7 +494,8 @@ required for use with the rest of this package. (constrain, forward, and log_pro
 <pre><code class="python">class Normal_Model(nn.Module):
     &#39;&#39;&#39;
     Example of a module for modeling a probability distribution. This is set up with all pieces
-    required for use with the rest of this package. (constrain, forward, and log_prob methods)
+    required for use with the rest of this package. (initial parameters; as well as implimented
+    constrain, forward, and log_prob methods)
     &#39;&#39;&#39;
     def __init__(
         self,
