@@ -141,8 +141,8 @@ def KernelDensityEstimate(
 class Normal_Model(nn.Module):
     '''
     Example of a module for modeling a probability distribution. This is set up with all pieces
-    required for use with the rest of this package. (initial parameters, constrain, forward, and
-    log_prob methods)
+    required for use with the rest of this package. (initial parameters; as well as implimented
+    constrain, forward, and log_prob methods)
     '''
     def __init__(
         self,
