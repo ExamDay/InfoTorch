@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>tools API documentation</title>
+<title>infotorch API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>tools</code></h1>
+<h1 class="title">Module <code>infotorch</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -243,7 +243,7 @@ def ECDF(x: torch.Tensor, dim: int = 0):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="tools.ECDF"><code class="name flex">
+<dt id="infotorch.ECDF"><code class="name flex">
 <span>def <span class="ident">ECDF</span></span>(<span>x: torch.Tensor, dim: int = 0)</span>
 </code></dt>
 <dd>
@@ -263,7 +263,7 @@ def ECDF(x: torch.Tensor, dim: int = 0):
     return torch.cat((x.unsqueeze(dim), cum.unsqueeze(dim)), dim)</code></pre>
 </details>
 </dd>
-<dt id="tools.KernelDensityEstimate"><code class="name flex">
+<dt id="infotorch.KernelDensityEstimate"><code class="name flex">
 <span>def <span class="ident">KernelDensityEstimate</span></span>(<span>data, x_tics=None, start=-9, end=9, kernel=Normal(loc: 0.0, scale: 1.0), bandwidth_adjustment=1, dim=1)</span>
 </code></dt>
 <dd>
@@ -337,7 +337,7 @@ def ECDF(x: torch.Tensor, dim: int = 0):
     return kde_y_tics</code></pre>
 </details>
 </dd>
-<dt id="tools.MLE_Fit"><code class="name flex">
+<dt id="infotorch.MLE_Fit"><code class="name flex">
 <span>def <span class="ident">MLE_Fit</span></span>(<span>model, data, dim=1, lr=0.05, iters=250)</span>
 </code></dt>
 <dd>
@@ -363,7 +363,7 @@ implimented log_prob() and constrain() methods, and paraters set to some initial
         model.constrain()</code></pre>
 </details>
 </dd>
-<dt id="tools.bimodality_index"><code class="name flex">
+<dt id="infotorch.bimodality_index"><code class="name flex">
 <span>def <span class="ident">bimodality_index</span></span>(<span>x, dim=1)</span>
 </code></dt>
 <dd>
@@ -423,7 +423,7 @@ distribution. Otherwise, they follow a bimodal or multimodal distribution.</p></
     return BC</code></pre>
 </details>
 </dd>
-<dt id="tools.kurtosis_fn"><code class="name flex">
+<dt id="infotorch.kurtosis_fn"><code class="name flex">
 <span>def <span class="ident">kurtosis_fn</span></span>(<span>x, dim=1)</span>
 </code></dt>
 <dd>
@@ -450,7 +450,7 @@ distribution. Otherwise, they follow a bimodal or multimodal distribution.</p></
     return kurtosis</code></pre>
 </details>
 </dd>
-<dt id="tools.skewness_fn"><code class="name flex">
+<dt id="infotorch.skewness_fn"><code class="name flex">
 <span>def <span class="ident">skewness_fn</span></span>(<span>x, dim=1)</span>
 </code></dt>
 <dd>
@@ -478,7 +478,7 @@ distribution. Otherwise, they follow a bimodal or multimodal distribution.</p></
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="tools.Normal_Model"><code class="flex name class">
+<dt id="infotorch.Normal_Model"><code class="flex name class">
 <span>class <span class="ident">Normal_Model</span></span>
 <span>(</span><span>init_mean: torch.Tensor = tensor([0.]), init_std: torch.Tensor = tensor([1.]))</span>
 </code></dt>
@@ -541,18 +541,18 @@ constrain, forward, and log_prob methods)</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="tools.Normal_Model.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dt id="infotorch.Normal_Model.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="tools.Normal_Model.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dt id="infotorch.Normal_Model.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="tools.Normal_Model.constrain"><code class="name flex">
+<dt id="infotorch.Normal_Model.constrain"><code class="name flex">
 <span>def <span class="ident">constrain</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -574,7 +574,7 @@ update. This is certainly not the most efficent way, but it gets the job done.</
     self.std.data = model.std.data.clamp(min=eps)</code></pre>
 </details>
 </dd>
-<dt id="tools.Normal_Model.forward"><code class="name flex">
+<dt id="infotorch.Normal_Model.forward"><code class="name flex">
 <span>def <span class="ident">forward</span></span>(<span>self, x) ‑> Callable[..., Any]</span>
 </code></dt>
 <dd>
@@ -588,7 +588,7 @@ update. This is certainly not the most efficent way, but it gets the job done.</
     return self.log_prob(x).exp()</code></pre>
 </details>
 </dd>
-<dt id="tools.Normal_Model.log_prob"><code class="name flex">
+<dt id="infotorch.Normal_Model.log_prob"><code class="name flex">
 <span>def <span class="ident">log_prob</span></span>(<span>self, x)</span>
 </code></dt>
 <dd>
@@ -623,24 +623,24 @@ distribution of the module.</p></div>
 <ul id="index">
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="tools.ECDF" href="#tools.ECDF">ECDF</a></code></li>
-<li><code><a title="tools.KernelDensityEstimate" href="#tools.KernelDensityEstimate">KernelDensityEstimate</a></code></li>
-<li><code><a title="tools.MLE_Fit" href="#tools.MLE_Fit">MLE_Fit</a></code></li>
-<li><code><a title="tools.bimodality_index" href="#tools.bimodality_index">bimodality_index</a></code></li>
-<li><code><a title="tools.kurtosis_fn" href="#tools.kurtosis_fn">kurtosis_fn</a></code></li>
-<li><code><a title="tools.skewness_fn" href="#tools.skewness_fn">skewness_fn</a></code></li>
+<li><code><a title="infotorch.ECDF" href="#infotorch.ECDF">ECDF</a></code></li>
+<li><code><a title="infotorch.KernelDensityEstimate" href="#infotorch.KernelDensityEstimate">KernelDensityEstimate</a></code></li>
+<li><code><a title="infotorch.MLE_Fit" href="#infotorch.MLE_Fit">MLE_Fit</a></code></li>
+<li><code><a title="infotorch.bimodality_index" href="#infotorch.bimodality_index">bimodality_index</a></code></li>
+<li><code><a title="infotorch.kurtosis_fn" href="#infotorch.kurtosis_fn">kurtosis_fn</a></code></li>
+<li><code><a title="infotorch.skewness_fn" href="#infotorch.skewness_fn">skewness_fn</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="tools.Normal_Model" href="#tools.Normal_Model">Normal_Model</a></code></h4>
+<h4><code><a title="infotorch.Normal_Model" href="#infotorch.Normal_Model">Normal_Model</a></code></h4>
 <ul class="">
-<li><code><a title="tools.Normal_Model.constrain" href="#tools.Normal_Model.constrain">constrain</a></code></li>
-<li><code><a title="tools.Normal_Model.dump_patches" href="#tools.Normal_Model.dump_patches">dump_patches</a></code></li>
-<li><code><a title="tools.Normal_Model.forward" href="#tools.Normal_Model.forward">forward</a></code></li>
-<li><code><a title="tools.Normal_Model.log_prob" href="#tools.Normal_Model.log_prob">log_prob</a></code></li>
-<li><code><a title="tools.Normal_Model.training" href="#tools.Normal_Model.training">training</a></code></li>
+<li><code><a title="infotorch.Normal_Model.constrain" href="#infotorch.Normal_Model.constrain">constrain</a></code></li>
+<li><code><a title="infotorch.Normal_Model.dump_patches" href="#infotorch.Normal_Model.dump_patches">dump_patches</a></code></li>
+<li><code><a title="infotorch.Normal_Model.forward" href="#infotorch.Normal_Model.forward">forward</a></code></li>
+<li><code><a title="infotorch.Normal_Model.log_prob" href="#infotorch.Normal_Model.log_prob">log_prob</a></code></li>
+<li><code><a title="infotorch.Normal_Model.training" href="#infotorch.Normal_Model.training">training</a></code></li>
 </ul>
 </li>
 </ul>

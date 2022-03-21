@@ -1,10 +1,11 @@
 import torch
-from tools import KernelDensityEstimate
 from torch.distributions import Normal
 from torch.distributions.exponential import Exponential
 from torch.distributions.log_normal import LogNormal
 from torch.distributions.chi2 import Chi2
 from torch.distributions.uniform import Uniform
+
+from infotorch import KernelDensityEstimate
 
 device = "cuda"
 

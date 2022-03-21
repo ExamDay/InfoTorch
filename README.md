@@ -19,15 +19,16 @@ pip3 install -r requirements.txt
 
 ## Using
 
-Functions:
+### Functions:
+Calculations include:
 - skewness
 - kurtosis
 - bimodality index
 - kernel density estimate
-- MLE Fit (maximum likelihood estimation)
+- MLE Fit (fit a model by maximum likelihood estimation)
 - ECDF (empirical cumulative distribution function)
 
-Classes:
+### Classes:
 - Normal Model
 
 ### See our [Documentation](https://www.blackboxlabs.dev/infotorch/documentation) for details.
