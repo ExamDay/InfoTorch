@@ -21,15 +21,21 @@ pip3 install -r requirements.txt
 
 ### Functions:
 
-### skewness_fn(x, dim=1)
+```python3
+skewness_fn(x, dim=1)
+```
 
 - Calculates skewness of data "x" along dimension "dim".
 
-### kurtosis_fn(x, dim=1)
+```python3
+kurtosis_fn(x, dim=1)
+```
 
 - Calculates kurtosis of data "x" along dimension "dim".
 
-### bimodality_index(x, dim=1)
+```python3
+bimodality_index(x, dim=1)
+```
 
 - Used to detect bimodality (or multimodality) of dataset(s) given a tensor "x" containing the data
   and a dimension "dim" along which to calculate.  The logic behind this index is that a bimodal (or
@@ -39,16 +45,22 @@ pip3 install -r requirements.txt
   distribution), the data are considered to follow a unimodal distribution. Otherwise, they follow a
   bimodal or multimodal distribution.
 
-### KernelDensityEstimate(data: torch.Tensor, x_tics: torch.Tensor = None, start: float = -9, end: float = 9, kernel: torch.distributions.Distribution = Normal(loc=0, scale=1), bandwidth_adjustment: float = 1, dim: int = 1):
+```python3
+KernelDensityEstimate(data: torch.Tensor, x_tics: torch.Tensor = None, start: float = -9, end: float = 9, kernel: torch.distributions.Distribution = Normal(loc=0, scale=1), bandwidth_adjustment: float = 1, dim: int = 1)
+```
 
 - Estimates the probability density function of a batch of data in tensor "data" alond dimension "dim".
 - Dimensions after dim are flattened into that dimension with torch.flatten().
 
-### MLE_Fit(model: torch.nn.Module, data: torch.Tensor, dim: int=1, lr: float=5e-2, iters: int=250)
+```python3
+MLE_Fit(model: torch.nn.Module, data: torch.Tensor, dim: int=1, lr: float=5e-2, iters: int=250)
+```
 
 - Fits the parameters of the provided model to the provided data. Provided model must have implimented log_prob() and constrain() methods.
 
-### ECDF(x: torch.Tensor, dim: int = 0)
+```python3
+ECDF(x: torch.Tensor, dim: int = 0)
+```
 
 - Finds empirical cumulative distribution function of provided data "x" along dimension "dim".
 
