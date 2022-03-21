@@ -72,6 +72,15 @@ ECDF(x: torch.Tensor, dim: int = 0)
 
 - Finds empirical cumulative distribution function of provided data "x" along dimension "dim".
 
+### Classes:
+```python3
+Normal_Model(
+	init_mean: torch.Tensor = torch.Tensor([0]),
+	init_std: torch.Tensor = torch.Tensor([1]),
+)
+```
+- Example of a module for modeling a probability distribution. This is set up with all pieces required for use with the rest of this package. (constrain, forward, and log_prob methods)
+
 ## Contributing
 For contributors to the project; do this before making your first commit:
 
