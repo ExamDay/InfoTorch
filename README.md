@@ -95,6 +95,14 @@ Calculations include:
 <!-- ``` -->
 <!-- - Example of a module for modeling a probability distribution. This is set up with all pieces required for use with the rest of this package. (initial parameters; as well as implimented constrain, forward, and log_prob methods) -->
 
+## ToDo:
+
+- Metalog model.
+- Example of a metalog fit.
+- Distribution entropy estimation.
+- Mutual information estimation.
+- Interaction information estimation.
+
 ## Contributing
 For contributors to the project; do this before making your first commit:
 
