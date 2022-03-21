@@ -46,7 +46,15 @@ bimodality_index(x, dim=1)
   bimodal or multimodal distribution.
 
 ```python3
-KernelDensityEstimate(data: torch.Tensor, x_tics: torch.Tensor = None, start: float = -9, end: float = 9, kernel: torch.distributions.Distribution = Normal(loc=0, scale=1), bandwidth_adjustment: float = 1, dim: int = 1)
+KernelDensityEstimate(
+	data: torch.Tensor,
+	x_tics: torch.Tensor = None,
+	start: float = -9,
+	end: float = 9,
+	kernel: torch.distributions.Distribution = Normal(loc=0, scale=1),
+	bandwidth_adjustment: float = 1,
+	dim: int = 1
+)
 ```
 
 - Estimates the probability density function of a batch of data in tensor "data" alond dimension "dim".
