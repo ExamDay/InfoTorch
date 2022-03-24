@@ -225,15 +225,212 @@ def MLE_Fit(model, data, dim=1, lr=5e-2, iters=250):
         optimizer.zero_grad()
         model.constrain()
 
-def ECDF(x: torch.Tensor, dim: int = 0):
-    &#39;&#39;&#39;
-    Finds empirical cumulative distribution function of provided data &#34;x&#34; along dimension &#34;dim&#34;.
-    &#39;&#39;&#39;
+def ECDF(x: torch.Tensor, dim: int = 0, reach_limits=True):
+    &#34;&#34;&#34;
+    set &#34;reach_limit&#34; to false to calculate ECDF in a way that will not include perfect 0 or 1.
+    &#34;&#34;&#34;
     x = torch.sort(x.flatten(dim), dim=dim).values
     n = x.shape[-1]
-    cum = torch.arange(1, n + 1).to(x.device) / n
+    cum = torch.arange(1, n + 1).to(x.device) / (n + 1 - reach_limits)
     cum = cum.repeat(*x.shape[0:-1], 1)  # one for each univariate sample
-    return torch.cat((x.unsqueeze(dim), cum.unsqueeze(dim)), dim)</code></pre>
+    return x, cum
+
+class Unbounded_Metalog_Model(nn.Module):
+    def __init__(
+        self,
+        init_a: torch.Tensor = None,
+    ):
+        super(Unbounded_Metalog_Model, self).__init__()
+
+        self.a = nn.Parameter(init_a, requires_grad=True)
+        self.n = self.a.shape[-1]
+
+        ### Define basis functions for QF (quantile function):
+        def qg1(y, i):
+            &#39;&#39;&#39;first basis function&#39;&#39;&#39;
+            return torch.ones_like(y)
+
+        def qg2(y, i):
+            &#39;&#39;&#39;second basis function&#39;&#39;&#39;
+            return torch.log(y / (1 - y))
+
+        def qg3(y, i):
+            &#39;&#39;&#39;third basis function&#39;&#39;&#39;
+            return (y - 0.5) * torch.log(y / (1 - y))
+
+        def qg4(y, i):
+            &#39;&#39;&#39;fourth basis function&#39;&#39;&#39;
+            return y - 0.5
+
+        def qgj_odd(y, j):
+            &#39;&#39;&#39;nth odd basis function (after third)&#39;&#39;&#39;
+            j += 1
+            assert (j % 2 != 0) and (j &gt;= 5)
+            return (y - 0.5).pow((j - 1) / 2)
+
+        def qgj_even(y, j):
+            &#39;&#39;&#39;nth even basis function (after fourth)&#39;&#39;&#39;
+            j += 1
+            assert (j % 2 == 0) and (j &gt;= 6)
+            return torch.log(y / (1 - y)) * (y - 0.5).pow(j / 2 - 1)
+
+        # Start QF basis functions:
+        self.qf_basis_functions = [qg1, qg2, qg3, qg4]
+        # Additional inverse cdf basis functions as needed:
+        self.qf_basis_functions = self.qf_basis_functions + [
+            qgj_odd if x % 2 == 0 else qgj_even for x in range(self.n - 4)
+        ]
+        # Trim as needed:
+        self.qf_basis_functions = self.qf_basis_functions[: self.n]
+
+        ### Define basis functions for inverse PDF in terms of cumulative probability
+        ### (^ derivative of quantile function):
+        def dqg1(y, i):
+            &#39;&#39;&#39;first basis function&#39;&#39;&#39;
+            return torch.zeros_like(y)
+
+        def dqg2(y, i):
+            &#39;&#39;&#39;second basis function&#39;&#39;&#39;
+            return 1 / (y * (1 - y))
+
+        def dqg3(y, i):
+            &#39;&#39;&#39;third basis function&#39;&#39;&#39;
+            return (y - 1 / 2) / (y * (1 - y)) + torch.log(y / (1 - y))
+
+        def dqg4(y, i):
+            &#39;&#39;&#39;fourth basis function&#39;&#39;&#39;
+            return torch.ones_like(y)
+
+        def dqgj_odd(y, j):
+            &#39;&#39;&#39;nth odd basis function (after third)&#39;&#39;&#39;
+            j += 1
+            assert (j % 2 != 0) and (j &gt;= 5)
+            return ((j - 1) / 2) * (y - 1 / 2).pow((j - 3) / 2)
+
+        def dqgj_even(y, j):
+            &#39;&#39;&#39;nth even basis function (after fourth)&#39;&#39;&#39;
+            j += 1
+            assert (j % 2 == 0) and (j &gt;= 6)
+            return (y - 1 / 2).pow(j / 2 - 1) / (y * (1 - y)) + (j / 2 - 1) * (
+                y - 1 / 2
+            ).pow(j / 2 - 2) * torch.log(y / (1 - y))
+
+        # Start PDF basis functions:
+        self.ipdf_basis_functions = [dqg1, dqg2, dqg3, dqg4]
+        # Additional ipdf basis functions as needed:
+        self.ipdf_basis_functions = self.ipdf_basis_functions + [
+            dqgj_odd if x % 2 == 0 else dqgj_even for x in range(self.n - 4)
+        ]
+        # Trim as needed:
+        self.ipdf_basis_functions = self.ipdf_basis_functions[: self.n]
+
+    def constrain(self):
+        &#39;&#39;&#39;Coefficients are unconstrained in this case.&#39;&#39;&#39;
+        pass
+
+    def quantile(self, y):
+        &#39;&#39;&#39;
+        Quantile of cumulative probability &#34;y&#34;.  (returns x-position of cumulative probability &#34;y&#34;.
+        This is an inverse CDF)
+        &#39;&#39;&#39;
+        x_tics = sum(
+            [
+                self.a[:, idx].unsqueeze(-1) * f(y, idx)
+                for idx, f in enumerate(self.qf_basis_functions)
+            ]
+        )
+        return x_tics
+
+    def prob_ito_cumprob(self, y):
+        &#39;&#39;&#39;Probability density in terms of cumulative probability &#34;y&#34;.&#39;&#39;&#39;
+        return sum(
+            [
+                self.a[:, idx].unsqueeze(-1) * f(y, idx)
+                for idx, f in enumerate(self.ipdf_basis_functions)
+            ]
+        ).pow(
+            -1
+        )  # for reciprocal of sum of terms
+
+    def prob(self, x, iters=64):
+        &#39;&#39;&#39;
+        Approximates probability density at a batch of tensors &#34;x&#34; by asymptotically bounded
+        approach. There is currently no known closed-form inverse metalog.
+        &#39;&#39;&#39;
+        eps = 1e-7
+        cum_y_guess = torch.ones_like(x) * 1 / 3
+
+        lr = 1/3
+        old_x_guess = self.quantile(cum_y_guess)  # initial
+        old_diff = 0  # initial
+        adj = torch.tensor([1]).to(x.device) / x.shape[1]  # initial
+        for i in range(iters):
+            cum_y_guess += adj
+            x_guess = self.quantile(cum_y_guess)
+            diff = x - x_guess
+            #  print(f&#34;mean squared diff {i}:&#34;, (torch.sum(diff.pow(2))/diff.shape[1]).item())
+            max_adj = (
+                torch.heaviside(diff, torch.Tensor([0]).to(cum_y_guess)).clamp(
+                    min=eps, max=1 - eps
+                )
+                - cum_y_guess
+            )
+            adj = max_adj * torch.tanh(diff.pow(2)) * lr
+
+        density = self.prob_ito_cumprob(cum_y_guess)
+        density = torch.nan_to_num(density, nan=0)
+        return density
+
+    def log_prob(self, x):
+        &#39;&#39;&#39;Approximates log of probability density at a batch of tensors &#34;x&#34;.&#39;&#39;&#39;
+        return torch.log(self.prob(x))
+
+    def estimate_entropy(self, steps=256):
+        &#39;&#39;&#39;Estimates shannon entropy of the distribution in nats by numeric integration.&#39;&#39;&#39;
+        eps = 1e-7
+        a = eps  # lower integration bound
+        b = 1 - eps  # upper integration bound
+        cum_y_tics = torch.Tensor(np.linspace(a, b, steps)).to(device)
+        x_tics = self.quantile(cum_y_tics)
+        p_tics = self.prob_ito_cumprob(cum_y_tics)
+        entropy = -torch.trapz(p_tics*torch.log(p_tics), x_tics)
+        return entropy
+
+    def sample(self, shape: torch.Tensor.shape):
+        &#39;&#39;&#39;Simulates data by inverse tranform.&#39;&#39;&#39;
+        eps = 1e-7
+        return self.quantile(torch.rand(shape).clamp(min=eps, max=1-eps))
+
+    def forward(self, x):
+        &#39;&#39;&#39;
+        By default: Approximates probability density at a batch of tensors &#34;x&#34; by asymptotically
+        bounded approach. There is currently no known closed-form inverse metalog.
+        &#39;&#39;&#39;
+        return self.prob(x)
+
+def Metalog_Fit_Closed_Form(model, data):
+    &#34;&#34;&#34;
+    Fits the parameters of the metalog model, &#34;model&#34;, to sources of data in &#34;data&#34;, by a closed-form
+    linear least-squares method.
+    This function supports batching for fitting many datasets at once and expects data in batched
+    form (with at least 2 dimensional shape). First dimension of data must match first dimension of
+    model coefficients &#34;a&#34;. If first dimension &gt; 1 (batchsize &gt; 1), this function will fit a number
+    of sets of coefficients, namely: one set of coefficients in the provided metalog model for each
+    dataset, where the first-dimension or &#34;batch-size&#34; of &#34;data&#34; indicates the number of independent
+    datasets.
+    &#34;&#34;&#34;
+    ecdf = ECDF(data, dim=1, reach_limits=False)
+    x, y = ecdf
+    x = x.float()
+    y = y.float()
+
+    Y_cols = [f(y, idx) for idx, f in enumerate(model.qf_basis_functions)]
+    Y = torch.stack(Y_cols, -1)
+    a = torch.bmm(
+        torch.linalg.solve(torch.bmm(Y.transpose(1, 2), Y), Y.transpose(1, 2)),
+        x.unsqueeze(-1),
+    ).flatten(1)
+    model.a.data = a</code></pre>
 </details>
 </section>
 <section>
@@ -244,23 +441,23 @@ def ECDF(x: torch.Tensor, dim: int = 0):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="infotorch.ECDF"><code class="name flex">
-<span>def <span class="ident">ECDF</span></span>(<span>x: torch.Tensor, dim: int = 0)</span>
+<span>def <span class="ident">ECDF</span></span>(<span>x: torch.Tensor, dim: int = 0, reach_limits=True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Finds empirical cumulative distribution function of provided data "x" along dimension "dim".</p></div>
+<div class="desc"><p>set "reach_limit" to false to calculate ECDF in a way that will not include perfect 0 or 1.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def ECDF(x: torch.Tensor, dim: int = 0):
-    &#39;&#39;&#39;
-    Finds empirical cumulative distribution function of provided data &#34;x&#34; along dimension &#34;dim&#34;.
-    &#39;&#39;&#39;
+<pre><code class="python">def ECDF(x: torch.Tensor, dim: int = 0, reach_limits=True):
+    &#34;&#34;&#34;
+    set &#34;reach_limit&#34; to false to calculate ECDF in a way that will not include perfect 0 or 1.
+    &#34;&#34;&#34;
     x = torch.sort(x.flatten(dim), dim=dim).values
     n = x.shape[-1]
-    cum = torch.arange(1, n + 1).to(x.device) / n
+    cum = torch.arange(1, n + 1).to(x.device) / (n + 1 - reach_limits)
     cum = cum.repeat(*x.shape[0:-1], 1)  # one for each univariate sample
-    return torch.cat((x.unsqueeze(dim), cum.unsqueeze(dim)), dim)</code></pre>
+    return x, cum</code></pre>
 </details>
 </dd>
 <dt id="infotorch.KernelDensityEstimate"><code class="name flex">
@@ -361,6 +558,47 @@ implimented log_prob() and constrain() methods, and paraters set to some initial
         optimizer.step()
         optimizer.zero_grad()
         model.constrain()</code></pre>
+</details>
+</dd>
+<dt id="infotorch.Metalog_Fit_Closed_Form"><code class="name flex">
+<span>def <span class="ident">Metalog_Fit_Closed_Form</span></span>(<span>model, data)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Fits the parameters of the metalog model, "model", to sources of data in "data", by a closed-form
+linear least-squares method.
+This function supports batching for fitting many datasets at once and expects data in batched
+form (with at least 2 dimensional shape). First dimension of data must match first dimension of
+model coefficients "a". If first dimension &gt; 1 (batchsize &gt; 1), this function will fit a number
+of sets of coefficients, namely: one set of coefficients in the provided metalog model for each
+dataset, where the first-dimension or "batch-size" of "data" indicates the number of independent
+datasets.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def Metalog_Fit_Closed_Form(model, data):
+    &#34;&#34;&#34;
+    Fits the parameters of the metalog model, &#34;model&#34;, to sources of data in &#34;data&#34;, by a closed-form
+    linear least-squares method.
+    This function supports batching for fitting many datasets at once and expects data in batched
+    form (with at least 2 dimensional shape). First dimension of data must match first dimension of
+    model coefficients &#34;a&#34;. If first dimension &gt; 1 (batchsize &gt; 1), this function will fit a number
+    of sets of coefficients, namely: one set of coefficients in the provided metalog model for each
+    dataset, where the first-dimension or &#34;batch-size&#34; of &#34;data&#34; indicates the number of independent
+    datasets.
+    &#34;&#34;&#34;
+    ecdf = ECDF(data, dim=1, reach_limits=False)
+    x, y = ecdf
+    x = x.float()
+    y = y.float()
+
+    Y_cols = [f(y, idx) for idx, f in enumerate(model.qf_basis_functions)]
+    Y = torch.stack(Y_cols, -1)
+    a = torch.bmm(
+        torch.linalg.solve(torch.bmm(Y.transpose(1, 2), Y), Y.transpose(1, 2)),
+        x.unsqueeze(-1),
+    ).flatten(1)
+    model.a.data = a</code></pre>
 </details>
 </dd>
 <dt id="infotorch.bimodality_index"><code class="name flex">
@@ -612,6 +850,403 @@ distribution of the module.</p></div>
 </dd>
 </dl>
 </dd>
+<dt id="infotorch.Unbounded_Metalog_Model"><code class="flex name class">
+<span>class <span class="ident">Unbounded_Metalog_Model</span></span>
+<span>(</span><span>init_a: torch.Tensor = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing to nest them in
+a tree structure. You can assign the submodules as regular attributes::</p>
+<pre><code>import torch.nn as nn
+import torch.nn.functional as F
+
+class Model(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+</code></pre>
+<p>Submodules assigned in this way will be registered, and will have their
+parameters converted too when you call :meth:<code>to</code>, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As per the example above, an <code>__init__()</code> call to the parent class
+must be made before assignment on the child.</p>
+</div>
+<p>:ivar training: Boolean represents whether this module is in training or
+evaluation mode.
+:vartype training: bool</p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Unbounded_Metalog_Model(nn.Module):
+    def __init__(
+        self,
+        init_a: torch.Tensor = None,
+    ):
+        super(Unbounded_Metalog_Model, self).__init__()
+
+        self.a = nn.Parameter(init_a, requires_grad=True)
+        self.n = self.a.shape[-1]
+
+        ### Define basis functions for QF (quantile function):
+        def qg1(y, i):
+            &#39;&#39;&#39;first basis function&#39;&#39;&#39;
+            return torch.ones_like(y)
+
+        def qg2(y, i):
+            &#39;&#39;&#39;second basis function&#39;&#39;&#39;
+            return torch.log(y / (1 - y))
+
+        def qg3(y, i):
+            &#39;&#39;&#39;third basis function&#39;&#39;&#39;
+            return (y - 0.5) * torch.log(y / (1 - y))
+
+        def qg4(y, i):
+            &#39;&#39;&#39;fourth basis function&#39;&#39;&#39;
+            return y - 0.5
+
+        def qgj_odd(y, j):
+            &#39;&#39;&#39;nth odd basis function (after third)&#39;&#39;&#39;
+            j += 1
+            assert (j % 2 != 0) and (j &gt;= 5)
+            return (y - 0.5).pow((j - 1) / 2)
+
+        def qgj_even(y, j):
+            &#39;&#39;&#39;nth even basis function (after fourth)&#39;&#39;&#39;
+            j += 1
+            assert (j % 2 == 0) and (j &gt;= 6)
+            return torch.log(y / (1 - y)) * (y - 0.5).pow(j / 2 - 1)
+
+        # Start QF basis functions:
+        self.qf_basis_functions = [qg1, qg2, qg3, qg4]
+        # Additional inverse cdf basis functions as needed:
+        self.qf_basis_functions = self.qf_basis_functions + [
+            qgj_odd if x % 2 == 0 else qgj_even for x in range(self.n - 4)
+        ]
+        # Trim as needed:
+        self.qf_basis_functions = self.qf_basis_functions[: self.n]
+
+        ### Define basis functions for inverse PDF in terms of cumulative probability
+        ### (^ derivative of quantile function):
+        def dqg1(y, i):
+            &#39;&#39;&#39;first basis function&#39;&#39;&#39;
+            return torch.zeros_like(y)
+
+        def dqg2(y, i):
+            &#39;&#39;&#39;second basis function&#39;&#39;&#39;
+            return 1 / (y * (1 - y))
+
+        def dqg3(y, i):
+            &#39;&#39;&#39;third basis function&#39;&#39;&#39;
+            return (y - 1 / 2) / (y * (1 - y)) + torch.log(y / (1 - y))
+
+        def dqg4(y, i):
+            &#39;&#39;&#39;fourth basis function&#39;&#39;&#39;
+            return torch.ones_like(y)
+
+        def dqgj_odd(y, j):
+            &#39;&#39;&#39;nth odd basis function (after third)&#39;&#39;&#39;
+            j += 1
+            assert (j % 2 != 0) and (j &gt;= 5)
+            return ((j - 1) / 2) * (y - 1 / 2).pow((j - 3) / 2)
+
+        def dqgj_even(y, j):
+            &#39;&#39;&#39;nth even basis function (after fourth)&#39;&#39;&#39;
+            j += 1
+            assert (j % 2 == 0) and (j &gt;= 6)
+            return (y - 1 / 2).pow(j / 2 - 1) / (y * (1 - y)) + (j / 2 - 1) * (
+                y - 1 / 2
+            ).pow(j / 2 - 2) * torch.log(y / (1 - y))
+
+        # Start PDF basis functions:
+        self.ipdf_basis_functions = [dqg1, dqg2, dqg3, dqg4]
+        # Additional ipdf basis functions as needed:
+        self.ipdf_basis_functions = self.ipdf_basis_functions + [
+            dqgj_odd if x % 2 == 0 else dqgj_even for x in range(self.n - 4)
+        ]
+        # Trim as needed:
+        self.ipdf_basis_functions = self.ipdf_basis_functions[: self.n]
+
+    def constrain(self):
+        &#39;&#39;&#39;Coefficients are unconstrained in this case.&#39;&#39;&#39;
+        pass
+
+    def quantile(self, y):
+        &#39;&#39;&#39;
+        Quantile of cumulative probability &#34;y&#34;.  (returns x-position of cumulative probability &#34;y&#34;.
+        This is an inverse CDF)
+        &#39;&#39;&#39;
+        x_tics = sum(
+            [
+                self.a[:, idx].unsqueeze(-1) * f(y, idx)
+                for idx, f in enumerate(self.qf_basis_functions)
+            ]
+        )
+        return x_tics
+
+    def prob_ito_cumprob(self, y):
+        &#39;&#39;&#39;Probability density in terms of cumulative probability &#34;y&#34;.&#39;&#39;&#39;
+        return sum(
+            [
+                self.a[:, idx].unsqueeze(-1) * f(y, idx)
+                for idx, f in enumerate(self.ipdf_basis_functions)
+            ]
+        ).pow(
+            -1
+        )  # for reciprocal of sum of terms
+
+    def prob(self, x, iters=64):
+        &#39;&#39;&#39;
+        Approximates probability density at a batch of tensors &#34;x&#34; by asymptotically bounded
+        approach. There is currently no known closed-form inverse metalog.
+        &#39;&#39;&#39;
+        eps = 1e-7
+        cum_y_guess = torch.ones_like(x) * 1 / 3
+
+        lr = 1/3
+        old_x_guess = self.quantile(cum_y_guess)  # initial
+        old_diff = 0  # initial
+        adj = torch.tensor([1]).to(x.device) / x.shape[1]  # initial
+        for i in range(iters):
+            cum_y_guess += adj
+            x_guess = self.quantile(cum_y_guess)
+            diff = x - x_guess
+            #  print(f&#34;mean squared diff {i}:&#34;, (torch.sum(diff.pow(2))/diff.shape[1]).item())
+            max_adj = (
+                torch.heaviside(diff, torch.Tensor([0]).to(cum_y_guess)).clamp(
+                    min=eps, max=1 - eps
+                )
+                - cum_y_guess
+            )
+            adj = max_adj * torch.tanh(diff.pow(2)) * lr
+
+        density = self.prob_ito_cumprob(cum_y_guess)
+        density = torch.nan_to_num(density, nan=0)
+        return density
+
+    def log_prob(self, x):
+        &#39;&#39;&#39;Approximates log of probability density at a batch of tensors &#34;x&#34;.&#39;&#39;&#39;
+        return torch.log(self.prob(x))
+
+    def estimate_entropy(self, steps=256):
+        &#39;&#39;&#39;Estimates shannon entropy of the distribution in nats by numeric integration.&#39;&#39;&#39;
+        eps = 1e-7
+        a = eps  # lower integration bound
+        b = 1 - eps  # upper integration bound
+        cum_y_tics = torch.Tensor(np.linspace(a, b, steps)).to(device)
+        x_tics = self.quantile(cum_y_tics)
+        p_tics = self.prob_ito_cumprob(cum_y_tics)
+        entropy = -torch.trapz(p_tics*torch.log(p_tics), x_tics)
+        return entropy
+
+    def sample(self, shape: torch.Tensor.shape):
+        &#39;&#39;&#39;Simulates data by inverse tranform.&#39;&#39;&#39;
+        eps = 1e-7
+        return self.quantile(torch.rand(shape).clamp(min=eps, max=1-eps))
+
+    def forward(self, x):
+        &#39;&#39;&#39;
+        By default: Approximates probability density at a batch of tensors &#34;x&#34; by asymptotically
+        bounded approach. There is currently no known closed-form inverse metalog.
+        &#39;&#39;&#39;
+        return self.prob(x)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>torch.nn.modules.module.Module</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="infotorch.Unbounded_Metalog_Model.dump_patches"><code class="name">var <span class="ident">dump_patches</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="infotorch.Unbounded_Metalog_Model.training"><code class="name">var <span class="ident">training</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="infotorch.Unbounded_Metalog_Model.constrain"><code class="name flex">
+<span>def <span class="ident">constrain</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Coefficients are unconstrained in this case.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def constrain(self):
+    &#39;&#39;&#39;Coefficients are unconstrained in this case.&#39;&#39;&#39;
+    pass</code></pre>
+</details>
+</dd>
+<dt id="infotorch.Unbounded_Metalog_Model.estimate_entropy"><code class="name flex">
+<span>def <span class="ident">estimate_entropy</span></span>(<span>self, steps=256)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Estimates shannon entropy of the distribution in nats by numeric integration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def estimate_entropy(self, steps=256):
+    &#39;&#39;&#39;Estimates shannon entropy of the distribution in nats by numeric integration.&#39;&#39;&#39;
+    eps = 1e-7
+    a = eps  # lower integration bound
+    b = 1 - eps  # upper integration bound
+    cum_y_tics = torch.Tensor(np.linspace(a, b, steps)).to(device)
+    x_tics = self.quantile(cum_y_tics)
+    p_tics = self.prob_ito_cumprob(cum_y_tics)
+    entropy = -torch.trapz(p_tics*torch.log(p_tics), x_tics)
+    return entropy</code></pre>
+</details>
+</dd>
+<dt id="infotorch.Unbounded_Metalog_Model.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, x) ‑> Callable[..., Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>By default: Approximates probability density at a batch of tensors "x" by asymptotically
+bounded approach. There is currently no known closed-form inverse metalog.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def forward(self, x):
+    &#39;&#39;&#39;
+    By default: Approximates probability density at a batch of tensors &#34;x&#34; by asymptotically
+    bounded approach. There is currently no known closed-form inverse metalog.
+    &#39;&#39;&#39;
+    return self.prob(x)</code></pre>
+</details>
+</dd>
+<dt id="infotorch.Unbounded_Metalog_Model.log_prob"><code class="name flex">
+<span>def <span class="ident">log_prob</span></span>(<span>self, x)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Approximates log of probability density at a batch of tensors "x".</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def log_prob(self, x):
+    &#39;&#39;&#39;Approximates log of probability density at a batch of tensors &#34;x&#34;.&#39;&#39;&#39;
+    return torch.log(self.prob(x))</code></pre>
+</details>
+</dd>
+<dt id="infotorch.Unbounded_Metalog_Model.prob"><code class="name flex">
+<span>def <span class="ident">prob</span></span>(<span>self, x, iters=64)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Approximates probability density at a batch of tensors "x" by asymptotically bounded
+approach. There is currently no known closed-form inverse metalog.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def prob(self, x, iters=64):
+    &#39;&#39;&#39;
+    Approximates probability density at a batch of tensors &#34;x&#34; by asymptotically bounded
+    approach. There is currently no known closed-form inverse metalog.
+    &#39;&#39;&#39;
+    eps = 1e-7
+    cum_y_guess = torch.ones_like(x) * 1 / 3
+
+    lr = 1/3
+    old_x_guess = self.quantile(cum_y_guess)  # initial
+    old_diff = 0  # initial
+    adj = torch.tensor([1]).to(x.device) / x.shape[1]  # initial
+    for i in range(iters):
+        cum_y_guess += adj
+        x_guess = self.quantile(cum_y_guess)
+        diff = x - x_guess
+        #  print(f&#34;mean squared diff {i}:&#34;, (torch.sum(diff.pow(2))/diff.shape[1]).item())
+        max_adj = (
+            torch.heaviside(diff, torch.Tensor([0]).to(cum_y_guess)).clamp(
+                min=eps, max=1 - eps
+            )
+            - cum_y_guess
+        )
+        adj = max_adj * torch.tanh(diff.pow(2)) * lr
+
+    density = self.prob_ito_cumprob(cum_y_guess)
+    density = torch.nan_to_num(density, nan=0)
+    return density</code></pre>
+</details>
+</dd>
+<dt id="infotorch.Unbounded_Metalog_Model.prob_ito_cumprob"><code class="name flex">
+<span>def <span class="ident">prob_ito_cumprob</span></span>(<span>self, y)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Probability density in terms of cumulative probability "y".</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def prob_ito_cumprob(self, y):
+    &#39;&#39;&#39;Probability density in terms of cumulative probability &#34;y&#34;.&#39;&#39;&#39;
+    return sum(
+        [
+            self.a[:, idx].unsqueeze(-1) * f(y, idx)
+            for idx, f in enumerate(self.ipdf_basis_functions)
+        ]
+    ).pow(
+        -1
+    )  # for reciprocal of sum of terms</code></pre>
+</details>
+</dd>
+<dt id="infotorch.Unbounded_Metalog_Model.quantile"><code class="name flex">
+<span>def <span class="ident">quantile</span></span>(<span>self, y)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Quantile of cumulative probability "y".
+(returns x-position of cumulative probability "y".
+This is an inverse CDF)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def quantile(self, y):
+    &#39;&#39;&#39;
+    Quantile of cumulative probability &#34;y&#34;.  (returns x-position of cumulative probability &#34;y&#34;.
+    This is an inverse CDF)
+    &#39;&#39;&#39;
+    x_tics = sum(
+        [
+            self.a[:, idx].unsqueeze(-1) * f(y, idx)
+            for idx, f in enumerate(self.qf_basis_functions)
+        ]
+    )
+    return x_tics</code></pre>
+</details>
+</dd>
+<dt id="infotorch.Unbounded_Metalog_Model.sample"><code class="name flex">
+<span>def <span class="ident">sample</span></span>(<span>self, shape: <attribute 'shape' of 'torch._C._TensorBase' objects>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Simulates data by inverse tranform.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sample(self, shape: torch.Tensor.shape):
+    &#39;&#39;&#39;Simulates data by inverse tranform.&#39;&#39;&#39;
+    eps = 1e-7
+    return self.quantile(torch.rand(shape).clamp(min=eps, max=1-eps))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -626,6 +1261,7 @@ distribution of the module.</p></div>
 <li><code><a title="infotorch.ECDF" href="#infotorch.ECDF">ECDF</a></code></li>
 <li><code><a title="infotorch.KernelDensityEstimate" href="#infotorch.KernelDensityEstimate">KernelDensityEstimate</a></code></li>
 <li><code><a title="infotorch.MLE_Fit" href="#infotorch.MLE_Fit">MLE_Fit</a></code></li>
+<li><code><a title="infotorch.Metalog_Fit_Closed_Form" href="#infotorch.Metalog_Fit_Closed_Form">Metalog_Fit_Closed_Form</a></code></li>
 <li><code><a title="infotorch.bimodality_index" href="#infotorch.bimodality_index">bimodality_index</a></code></li>
 <li><code><a title="infotorch.kurtosis_fn" href="#infotorch.kurtosis_fn">kurtosis_fn</a></code></li>
 <li><code><a title="infotorch.skewness_fn" href="#infotorch.skewness_fn">skewness_fn</a></code></li>
@@ -641,6 +1277,21 @@ distribution of the module.</p></div>
 <li><code><a title="infotorch.Normal_Model.forward" href="#infotorch.Normal_Model.forward">forward</a></code></li>
 <li><code><a title="infotorch.Normal_Model.log_prob" href="#infotorch.Normal_Model.log_prob">log_prob</a></code></li>
 <li><code><a title="infotorch.Normal_Model.training" href="#infotorch.Normal_Model.training">training</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="infotorch.Unbounded_Metalog_Model" href="#infotorch.Unbounded_Metalog_Model">Unbounded_Metalog_Model</a></code></h4>
+<ul class="two-column">
+<li><code><a title="infotorch.Unbounded_Metalog_Model.constrain" href="#infotorch.Unbounded_Metalog_Model.constrain">constrain</a></code></li>
+<li><code><a title="infotorch.Unbounded_Metalog_Model.dump_patches" href="#infotorch.Unbounded_Metalog_Model.dump_patches">dump_patches</a></code></li>
+<li><code><a title="infotorch.Unbounded_Metalog_Model.estimate_entropy" href="#infotorch.Unbounded_Metalog_Model.estimate_entropy">estimate_entropy</a></code></li>
+<li><code><a title="infotorch.Unbounded_Metalog_Model.forward" href="#infotorch.Unbounded_Metalog_Model.forward">forward</a></code></li>
+<li><code><a title="infotorch.Unbounded_Metalog_Model.log_prob" href="#infotorch.Unbounded_Metalog_Model.log_prob">log_prob</a></code></li>
+<li><code><a title="infotorch.Unbounded_Metalog_Model.prob" href="#infotorch.Unbounded_Metalog_Model.prob">prob</a></code></li>
+<li><code><a title="infotorch.Unbounded_Metalog_Model.prob_ito_cumprob" href="#infotorch.Unbounded_Metalog_Model.prob_ito_cumprob">prob_ito_cumprob</a></code></li>
+<li><code><a title="infotorch.Unbounded_Metalog_Model.quantile" href="#infotorch.Unbounded_Metalog_Model.quantile">quantile</a></code></li>
+<li><code><a title="infotorch.Unbounded_Metalog_Model.sample" href="#infotorch.Unbounded_Metalog_Model.sample">sample</a></code></li>
+<li><code><a title="infotorch.Unbounded_Metalog_Model.training" href="#infotorch.Unbounded_Metalog_Model.training">training</a></code></li>
 </ul>
 </li>
 </ul>

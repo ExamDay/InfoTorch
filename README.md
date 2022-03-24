@@ -27,9 +27,11 @@ Calculations include:
 - kernel density estimate
 - MLE Fit (fit a model by maximum likelihood estimation)
 - ECDF (empirical cumulative distribution function)
+- Metalog Fit (Closed Form)
 
 ### Classes:
 - Normal Model
+- Unbounded Metalog Model
 
 ### See our [Documentation](https://www.blackboxlabs.dev/infotorch/documentation) for details.
 
@@ -97,9 +99,6 @@ Calculations include:
 
 ## ToDo:
 
-- Metalog model.
-- Example of a metalog fit.
-- Distribution entropy estimation.
 - Mutual information estimation.
 - Interaction information estimation.
 
@@ -116,7 +115,7 @@ pre-commit install
 
 - Make sure to update the documentation to include your changes before commiting:
 ```bash
-pdoc --html tools.py --force
+pdoc --html infotorch.py --force
 ```
 
 - Also Make sure to include any new dependencies in the requirements.txt before commiting with:
