@@ -236,6 +236,9 @@ def ECDF(x: torch.Tensor, dim: int = 0, reach_limits=True):
     return x, cum
 
 class Unbounded_Metalog_Model(nn.Module):
+    &#39;&#39;&#39;
+    An implimentation of unbounded metalog models.
+    &#39;&#39;&#39;
     def __init__(
         self,
         init_a: torch.Tensor = None,
@@ -396,8 +399,8 @@ class Unbounded_Metalog_Model(nn.Module):
         entropy = -torch.trapz(p_tics*torch.log(p_tics), x_tics)
         return entropy
 
-    def sample(self, shape: torch.Tensor.shape):
-        &#39;&#39;&#39;Simulates data by inverse tranform.&#39;&#39;&#39;
+    def sample(self, shape):
+        &#39;&#39;&#39;Simulates data of shape &#34;shape&#34; by inverse tranform.&#39;&#39;&#39;
         eps = 1e-7
         return self.quantile(torch.rand(shape).clamp(min=eps, max=1-eps))
 
@@ -855,39 +858,16 @@ distribution of the module.</p></div>
 <span>(</span><span>init_a: torch.Tensor = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Base class for all neural network modules.</p>
-<p>Your models should also subclass this class.</p>
-<p>Modules can also contain other Modules, allowing to nest them in
-a tree structure. You can assign the submodules as regular attributes::</p>
-<pre><code>import torch.nn as nn
-import torch.nn.functional as F
-
-class Model(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.conv1 = nn.Conv2d(1, 20, 5)
-        self.conv2 = nn.Conv2d(20, 20, 5)
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        return F.relu(self.conv2(x))
-</code></pre>
-<p>Submodules assigned in this way will be registered, and will have their
-parameters converted too when you call :meth:<code>to</code>, etc.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>As per the example above, an <code>__init__()</code> call to the parent class
-must be made before assignment on the child.</p>
-</div>
-<p>:ivar training: Boolean represents whether this module is in training or
-evaluation mode.
-:vartype training: bool</p>
+<div class="desc"><p>An implimentation of unbounded metalog models.</p>
 <p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Unbounded_Metalog_Model(nn.Module):
+    &#39;&#39;&#39;
+    An implimentation of unbounded metalog models.
+    &#39;&#39;&#39;
     def __init__(
         self,
         init_a: torch.Tensor = None,
@@ -1048,8 +1028,8 @@ evaluation mode.
         entropy = -torch.trapz(p_tics*torch.log(p_tics), x_tics)
         return entropy
 
-    def sample(self, shape: torch.Tensor.shape):
-        &#39;&#39;&#39;Simulates data by inverse tranform.&#39;&#39;&#39;
+    def sample(self, shape):
+        &#39;&#39;&#39;Simulates data of shape &#34;shape&#34; by inverse tranform.&#39;&#39;&#39;
         eps = 1e-7
         return self.quantile(torch.rand(shape).clamp(min=eps, max=1-eps))
 
@@ -1231,16 +1211,16 @@ This is an inverse CDF)</p></div>
 </details>
 </dd>
 <dt id="infotorch.Unbounded_Metalog_Model.sample"><code class="name flex">
-<span>def <span class="ident">sample</span></span>(<span>self, shape: <attribute 'shape' of 'torch._C._TensorBase' objects>)</span>
+<span>def <span class="ident">sample</span></span>(<span>self, shape)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Simulates data by inverse tranform.</p></div>
+<div class="desc"><p>Simulates data of shape "shape" by inverse tranform.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def sample(self, shape: torch.Tensor.shape):
-    &#39;&#39;&#39;Simulates data by inverse tranform.&#39;&#39;&#39;
+<pre><code class="python">def sample(self, shape):
+    &#39;&#39;&#39;Simulates data of shape &#34;shape&#34; by inverse tranform.&#39;&#39;&#39;
     eps = 1e-7
     return self.quantile(torch.rand(shape).clamp(min=eps, max=1-eps))</code></pre>
 </details>

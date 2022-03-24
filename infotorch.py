@@ -208,6 +208,9 @@ def ECDF(x: torch.Tensor, dim: int = 0, reach_limits=True):
     return x, cum
 
 class Unbounded_Metalog_Model(nn.Module):
+    '''
+    An implimentation of unbounded metalog models.
+    '''
     def __init__(
         self,
         init_a: torch.Tensor = None,
@@ -368,8 +371,8 @@ class Unbounded_Metalog_Model(nn.Module):
         entropy = -torch.trapz(p_tics*torch.log(p_tics), x_tics)
         return entropy
 
-    def sample(self, shape: torch.Tensor.shape):
-        '''Simulates data by inverse tranform.'''
+    def sample(self, shape):
+        '''Simulates data of shape "shape" by inverse tranform.'''
         eps = 1e-7
         return self.quantile(torch.rand(shape).clamp(min=eps, max=1-eps))
 
