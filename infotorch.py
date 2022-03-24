@@ -379,7 +379,7 @@ class Unbounded_Metalog_Model(nn.Module):
         return entropy
 
     def sample(self, shape):
-        '''Simulates data of shape "shape" by inverse tranform.'''
+        '''Simulates data of shape "shape" by inverse tranform sampling.'''
         eps = 1e-7
         return self.quantile(torch.rand(shape).clamp(min=eps, max=1-eps))
 
