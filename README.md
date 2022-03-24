@@ -30,7 +30,7 @@ Calculations include:
 - Metalog Fit (Closed Form)
 
 ### Classes:
-- Normal Model
+- Normal Model (for example)
 - Unbounded Metalog Model
 
 ### See our [Documentation](https://www.blackboxlabs.dev/infotorch/documentation) for details.
