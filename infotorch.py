@@ -258,8 +258,8 @@ class Unbounded_Metalog_Model(nn.Module):
         # Trim as needed:
         self.qf_basis_functions = self.qf_basis_functions[: self.n]
 
-        ### Define basis functions for inverse PDF in terms of cumulative probability
-        ### (^ derivative of quantile function):
+        ### Define basis functions for derivative of quantile function in terms of cumulative
+        ### probability. (^ derivative of quantile function):
         def dqg1(y, i):
             '''first basis function'''
             return torch.zeros_like(y)
@@ -290,14 +290,14 @@ class Unbounded_Metalog_Model(nn.Module):
                 y - 1 / 2
             ).pow(j / 2 - 2) * torch.log(y / (1 - y))
 
-        # Start PDF basis functions:
-        self.ipdf_basis_functions = [dqg1, dqg2, dqg3, dqg4]
-        # Additional ipdf basis functions as needed:
-        self.ipdf_basis_functions = self.ipdf_basis_functions + [
+        # Start derivative quantile basis functions:
+        self.dqf_basis_functions = [dqg1, dqg2, dqg3, dqg4]
+        # Additional dqf basis functions as needed:
+        self.dqf_basis_functions = self.dqf_basis_functions + [
             dqgj_odd if x % 2 == 0 else dqgj_even for x in range(self.n - 4)
         ]
         # Trim as needed:
-        self.ipdf_basis_functions = self.ipdf_basis_functions[: self.n]
+        self.dqf_basis_functions = self.dqf_basis_functions[: self.n]
 
     def constrain(self):
         '''Coefficients are unconstrained in this case.'''
@@ -316,16 +316,21 @@ class Unbounded_Metalog_Model(nn.Module):
         )
         return x_tics
 
-    def prob_ito_cumprob(self, y):
-        '''Probability density in terms of cumulative probability "y".'''
+    def derivative_quantile(self, y):
+        '''
+        Derivative of quantile as function of cumulative probability "y".
+        (AKA: quantile density function.)
+        '''
         return sum(
             [
                 self.a[:, idx].unsqueeze(-1) * f(y, idx)
-                for idx, f in enumerate(self.ipdf_basis_functions)
+                for idx, f in enumerate(self.dqf_basis_functions)
             ]
-        ).pow(
-            -1
-        )  # for reciprocal of sum of terms
+        )
+
+    def prob_ito_cumprob(self, y):
+        '''Probability density in terms of cumulative probability "y".'''
+        return self.derivative_quantile(y).pow(-1)
 
     def prob(self, x, iters=64):
         '''
@@ -366,9 +371,11 @@ class Unbounded_Metalog_Model(nn.Module):
         a = eps  # lower integration bound
         b = 1 - eps  # upper integration bound
         cum_y_tics = torch.Tensor(np.linspace(a, b, steps)).to(device)
-        x_tics = self.quantile(cum_y_tics)
-        p_tics = self.prob_ito_cumprob(cum_y_tics)
-        entropy = -torch.trapz(p_tics*torch.log(p_tics), x_tics)
+        #  x_tics = self.quantile(cum_y_tics)
+        #  p_tics = self.prob_ito_cumprob(cum_y_tics)
+        #  entropy = -torch.trapz(p_tics*torch.log(p_tics), x_tics)
+        qp_tics = self.derivative_quantile(cum_y_tics)
+        entropy = torch.trapz(torch.log(qp_tics), cum_y_tics)
         return entropy
 
     def sample(self, shape):
