@@ -393,12 +393,13 @@ def Metalog_Fit_Closed_Form(model, data):
     """
     Fits the parameters of the metalog model, "model", to sources of data in "data", by a closed-form
     linear least-squares method.
-    This function supports channeling for fitting many datasets at once and expects data in channelled
-    form (with at least 2 dimensional shape). First dimension of data must match first dimension of
-    model coefficients "a". If first dimension > 1 (channels > 1), this function will fit a number
-    of sets of coefficients, namely: one set of coefficients in the provided metalog model for each
-    dataset, where the first-dimension or "channel-count" of "data" indicates the number of independent
-    datasets.
+    This function supports channeling for fitting many datasets at once and expects data in
+    channelled form (with at least 2 dimensional shape like [channels, points] or a batch like
+    [batches, channels, points]). Second to last dimension (-2) of data must match first dimension
+    of model coefficients "a". If second to last dimension > 1 (channels > 1), this function will
+    fit a number of sets of coefficients, namely: one set of coefficients in the provided metalog
+    model for each dataset, where the second to last dimension or "channel-count" of "data"
+    indicates the number of independent datasets.
     """
     ecdf = ECDF(data, dim=1, reach_limits=False)
     x, y = ecdf

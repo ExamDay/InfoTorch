@@ -421,12 +421,13 @@ def Metalog_Fit_Closed_Form(model, data):
     &#34;&#34;&#34;
     Fits the parameters of the metalog model, &#34;model&#34;, to sources of data in &#34;data&#34;, by a closed-form
     linear least-squares method.
-    This function supports channeling for fitting many datasets at once and expects data in channelled
-    form (with at least 2 dimensional shape). First dimension of data must match first dimension of
-    model coefficients &#34;a&#34;. If first dimension &gt; 1 (channels &gt; 1), this function will fit a number
-    of sets of coefficients, namely: one set of coefficients in the provided metalog model for each
-    dataset, where the first-dimension or &#34;channel-count&#34; of &#34;data&#34; indicates the number of independent
-    datasets.
+    This function supports channeling for fitting many datasets at once and expects data in
+    channelled form (with at least 2 dimensional shape like [channels, points] or a batch like
+    [batches, channels, points]). Second to last dimension (-2) of data must match first dimension
+    of model coefficients &#34;a&#34;. If second to last dimension &gt; 1 (channels &gt; 1), this function will
+    fit a number of sets of coefficients, namely: one set of coefficients in the provided metalog
+    model for each dataset, where the second to last dimension or &#34;channel-count&#34; of &#34;data&#34;
+    indicates the number of independent datasets.
     &#34;&#34;&#34;
     ecdf = ECDF(data, dim=1, reach_limits=False)
     x, y = ecdf
@@ -575,12 +576,13 @@ implimented log_prob() and constrain() methods, and paraters set to some initial
 <dd>
 <div class="desc"><p>Fits the parameters of the metalog model, "model", to sources of data in "data", by a closed-form
 linear least-squares method.
-This function supports channeling for fitting many datasets at once and expects data in channelled
-form (with at least 2 dimensional shape). First dimension of data must match first dimension of
-model coefficients "a". If first dimension &gt; 1 (channels &gt; 1), this function will fit a number
-of sets of coefficients, namely: one set of coefficients in the provided metalog model for each
-dataset, where the first-dimension or "channel-count" of "data" indicates the number of independent
-datasets.</p></div>
+This function supports channeling for fitting many datasets at once and expects data in
+channelled form (with at least 2 dimensional shape like [channels, points] or a batch like
+[batches, channels, points]). Second to last dimension (-2) of data must match first dimension
+of model coefficients "a". If second to last dimension &gt; 1 (channels &gt; 1), this function will
+fit a number of sets of coefficients, namely: one set of coefficients in the provided metalog
+model for each dataset, where the second to last dimension or "channel-count" of "data"
+indicates the number of independent datasets.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -589,12 +591,13 @@ datasets.</p></div>
     &#34;&#34;&#34;
     Fits the parameters of the metalog model, &#34;model&#34;, to sources of data in &#34;data&#34;, by a closed-form
     linear least-squares method.
-    This function supports channeling for fitting many datasets at once and expects data in channelled
-    form (with at least 2 dimensional shape). First dimension of data must match first dimension of
-    model coefficients &#34;a&#34;. If first dimension &gt; 1 (channels &gt; 1), this function will fit a number
-    of sets of coefficients, namely: one set of coefficients in the provided metalog model for each
-    dataset, where the first-dimension or &#34;channel-count&#34; of &#34;data&#34; indicates the number of independent
-    datasets.
+    This function supports channeling for fitting many datasets at once and expects data in
+    channelled form (with at least 2 dimensional shape like [channels, points] or a batch like
+    [batches, channels, points]). Second to last dimension (-2) of data must match first dimension
+    of model coefficients &#34;a&#34;. If second to last dimension &gt; 1 (channels &gt; 1), this function will
+    fit a number of sets of coefficients, namely: one set of coefficients in the provided metalog
+    model for each dataset, where the second to last dimension or &#34;channel-count&#34; of &#34;data&#34;
+    indicates the number of independent datasets.
     &#34;&#34;&#34;
     ecdf = ECDF(data, dim=1, reach_limits=False)
     x, y = ecdf
