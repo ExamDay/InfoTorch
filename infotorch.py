@@ -308,13 +308,13 @@ class Unbounded_Metalog_Model(nn.Module):
         Quantile of cumulative probability "y".  (returns x-position of cumulative probability "y".
         This is an inverse CDF)
         '''
-        x_tics = sum(
+        x_values = sum(
             [
                 self.a[:, idx].unsqueeze(-1) * f(y, idx)
                 for idx, f in enumerate(self.qf_basis_functions)
             ]
         )
-        return x_tics
+        return x_values
 
     def derivative_quantile(self, y):
         '''
@@ -343,7 +343,7 @@ class Unbounded_Metalog_Model(nn.Module):
         lr = 1/3
         old_x_guess = self.quantile(cum_y_guess)  # initial
         old_diff = 0  # initial
-        adj = torch.tensor([1]).to(x.device) / x.shape[1]  # initial
+        adj = torch.tensor([1]).to(self.a.device) / x.shape[1]  # initial
         for i in range(iters):
             cum_y_guess += adj
             x_guess = self.quantile(cum_y_guess)
@@ -370,10 +370,9 @@ class Unbounded_Metalog_Model(nn.Module):
         eps = 1e-7
         a = eps  # lower integration bound
         b = 1 - eps  # upper integration bound
-        cum_y_tics = torch.Tensor(np.linspace(a, b, steps)).to(device)
-        #  x_tics = self.quantile(cum_y_tics)
-        #  p_tics = self.prob_ito_cumprob(cum_y_tics)
-        #  entropy = -torch.trapz(p_tics*torch.log(p_tics), x_tics)
+        cum_y_tics = torch.Tensor(np.linspace(a, b, steps)).to(self.a.device)
+        # shape for batch and channel support;
+        cum_y_tics = cum_y_tics.repeat(self.a.shape[0], 1)
         qp_tics = self.derivative_quantile(cum_y_tics)
         entropy = torch.trapz(torch.log(qp_tics), cum_y_tics)
         return entropy
@@ -381,7 +380,7 @@ class Unbounded_Metalog_Model(nn.Module):
     def sample(self, shape):
         '''Simulates data of shape "shape" by inverse tranform sampling.'''
         eps = 1e-7
-        return self.quantile(torch.rand(shape).clamp(min=eps, max=1-eps))
+        return self.quantile(torch.rand(shape).clamp(min=eps, max=1-eps).to(self.a.device))
 
     def forward(self, x):
         '''
@@ -394,11 +393,11 @@ def Metalog_Fit_Closed_Form(model, data):
     """
     Fits the parameters of the metalog model, "model", to sources of data in "data", by a closed-form
     linear least-squares method.
-    This function supports batching for fitting many datasets at once and expects data in batched
+    This function supports channeling for fitting many datasets at once and expects data in channelled
     form (with at least 2 dimensional shape). First dimension of data must match first dimension of
-    model coefficients "a". If first dimension > 1 (batchsize > 1), this function will fit a number
+    model coefficients "a". If first dimension > 1 (channels > 1), this function will fit a number
     of sets of coefficients, namely: one set of coefficients in the provided metalog model for each
-    dataset, where the first-dimension or "batch-size" of "data" indicates the number of independent
+    dataset, where the first-dimension or "channel-count" of "data" indicates the number of independent
     datasets.
     """
     ecdf = ECDF(data, dim=1, reach_limits=False)
