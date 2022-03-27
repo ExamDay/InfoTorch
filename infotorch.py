@@ -374,7 +374,7 @@ class Unbounded_Metalog_Model(nn.Module):
         # shape for batch and channel support;
         cum_y_tics = cum_y_tics.repeat(self.a.shape[0], 1)
         qp_tics = self.derivative_quantile(cum_y_tics)
-        entropy = torch.trapz(torch.log(qp_tics), cum_y_tics)
+        entropy = torch.trapz(torch.nan_to_num(torch.log(qp_tics), 0), cum_y_tics)
         return entropy
 
     def sample(self, shape):
