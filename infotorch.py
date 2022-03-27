@@ -2,8 +2,9 @@ import torch
 import torch.nn as nn
 from torch.distributions import Normal
 
+
 def skewness_fn(x, dim=1):
-    '''Calculates skewness of data "x" along dimension "dim".'''
+    """Calculates skewness of data "x" along dimension "dim"."""
     std, mean = torch.std_mean(x, dim)
     n = torch.Tensor([x.shape[dim]]).to(x.device)
     eps = 1e-6  # for stability
@@ -17,7 +18,7 @@ def skewness_fn(x, dim=1):
 
 
 def kurtosis_fn(x, dim=1):
-    '''Calculates kurtosis of data "x" along dimension "dim".'''
+    """Calculates kurtosis of data "x" along dimension "dim"."""
     std, mean = torch.std_mean(x, dim)
     n = torch.Tensor([x.shape[dim]]).to(x.device)
     eps = 1e-6  # for stability
@@ -33,8 +34,9 @@ def kurtosis_fn(x, dim=1):
     )
     return kurtosis
 
+
 def bimodality_index(x, dim=1):
-    '''
+    """
     Used to detect bimodality (or multimodality) of dataset(s) given a tensor "x" containing the
     data and a dimension "dim" along which to calculate.  The logic behind this index is that a
     bimodal (or multimodal) distribution with light tails will have very low kurtosis, an asymmetric
@@ -42,7 +44,7 @@ def bimodality_index(x, dim=1):
     likely the data are to follow a unimodal distribution.  As a rule: if return value ≤ 0.555
     (bimodal index for uniform distribution), the data are considered to follow a unimodal
     distribution. Otherwise, they follow a bimodal or multimodal distribution.
-    '''
+    """
     # calculate standard deviation and mean of dataset(s)
     std, mean = torch.std_mean(x, dim)
     # get number of samples in dataset(s)
@@ -74,6 +76,7 @@ def bimodality_index(x, dim=1):
 
     return BC
 
+
 def KernelDensityEstimate(
     data,
     x_tics=None,
@@ -83,7 +86,9 @@ def KernelDensityEstimate(
     bandwidth_adjustment=1,
     dim=1,
 ):
-    '''Estimates the probability density function of a batch of data.'''
+    """
+    Estimates the probability density function of a batch of data "data" along dimension "dim".
+    """
     # convert to positive index (important for unsqueezing)
     if dim < 0:
         dim = len(data.shape) + dim
@@ -91,16 +96,12 @@ def KernelDensityEstimate(
             raise IndexError
 
     def kde_prob(
-        data,
-        x,
-        dim=dim,
-        kernel=Normal(loc=0, scale=1),
-        bandwidth_adjustment=1,
+        data, x, dim=dim, kernel=Normal(loc=0, scale=1), bandwidth_adjustment=1
     ):
-        '''
+        """
         Returns the probability of the items in tensor 'x' according to the PDF estimated by a KDE.
         This function is memory intensive.
-        '''
+        """
         data = data.flatten(dim)
         n = data.shape[dim]
         silvermans_factor = ((4 * torch.std(data, dim).pow(5)) / (3 * n)).pow(1 / 5)
@@ -131,19 +132,18 @@ def KernelDensityEstimate(
         x_tics = x_tics.to(data.device)
     x_tics.requires_grad = True
     kde_y_tics = kde_prob(
-        data,
-        x_tics,
-        kernel=kernel,
-        bandwidth_adjustment=bandwidth_adjustment,
+        data, x_tics, kernel=kernel, bandwidth_adjustment=bandwidth_adjustment
     )
     return kde_y_tics
 
+
 class Normal_Model(nn.Module):
-    '''
+    """
     Example of a module for modeling a probability distribution. This is set up with all pieces
     required for use with the rest of this package. (initial parameters; as well as implimented
     constrain, forward, and log_prob methods)
-    '''
+    """
+
     def __init__(
         self,
         init_mean: torch.Tensor = torch.Tensor([0]),
@@ -158,20 +158,20 @@ class Normal_Model(nn.Module):
         )
 
     def constrain(self):
-        '''
+        """
         Method to run on "constrain" step of training. Easiest method for optimization under
         constraint is Projection Optimization by simply clamping parameters to bounds after each
         update. This is certainly not the most efficent way, but it gets the job done.
-        '''
+        """
         #  can't have negative standard deviation so lets prevent that:
         eps = 1e-6
         self.std.data = model.std.data.clamp(min=eps)
 
     def log_prob(self, x):
-        '''
+        """
         Returns the log probability of the items in tensor 'x' according to the probability
         distribution of the module.
-        '''
+        """
         return (
             -torch.log(self.std.unsqueeze(-1))
             - (self.ln2p / 2)
@@ -179,14 +179,15 @@ class Normal_Model(nn.Module):
         )
 
     def forward(self, x):
-        '''Returns the probability of the items in tensor 'x' according to the probability distribution of the module.'''
+        """Returns the probability of the items in tensor 'x' according to the probability distribution of the module."""
         return self.log_prob(x).exp()
 
+
 def MLE_Fit(model, data, dim=1, lr=5e-2, iters=250):
-    '''
+    """
     Fits the parameters of the provided model to the provided data. Provided model must have
-    implimented log_prob() and constrain() methods, and paraters set to some initial value.
-    '''
+    implimented log_prob() and constrain() methods, and parameters set to some initial value.
+    """
     optimizer = torch.optim.RMSprop(model.parameters(), lr=lr)
     #  print("model parameters:", [x for x in model.parameters()])
     #  data = data.flatten(dim)
@@ -197,9 +198,11 @@ def MLE_Fit(model, data, dim=1, lr=5e-2, iters=250):
         optimizer.zero_grad()
         model.constrain()
 
+
 def ECDF(x: torch.Tensor, dim: int = 0, reach_limits=True):
     """
-    set "reach_limit" to false to calculate ECDF in a way that will not include perfect 0 or 1.
+    Calculates the empirical cumulative distribution function of data "x" along dimension "dim".
+    Set "reach_limit" to false to calculate ECDF in a way that will not include perfect 0 or 1.
     """
     x = torch.sort(x.flatten(dim), dim=dim).values
     n = x.shape[-1]
@@ -207,14 +210,13 @@ def ECDF(x: torch.Tensor, dim: int = 0, reach_limits=True):
     cum = cum.repeat(*x.shape[0:-1], 1)  # one for each univariate sample
     return x, cum
 
+
 class Unbounded_Metalog_Model(nn.Module):
-    '''
+    """
     An implimentation of unbounded metalog models.
-    '''
-    def __init__(
-        self,
-        init_a: torch.Tensor = None,
-    ):
+    """
+
+    def __init__(self, init_a: torch.Tensor = None):
         super(Unbounded_Metalog_Model, self).__init__()
 
         self.a = nn.Parameter(init_a, requires_grad=True)
@@ -222,29 +224,29 @@ class Unbounded_Metalog_Model(nn.Module):
 
         ### Define basis functions for QF (quantile function):
         def qg1(y, i):
-            '''first basis function'''
+            """first basis function"""
             return torch.ones_like(y)
 
         def qg2(y, i):
-            '''second basis function'''
+            """second basis function"""
             return torch.log(y / (1 - y))
 
         def qg3(y, i):
-            '''third basis function'''
+            """third basis function"""
             return (y - 0.5) * torch.log(y / (1 - y))
 
         def qg4(y, i):
-            '''fourth basis function'''
+            """fourth basis function"""
             return y - 0.5
 
         def qgj_odd(y, j):
-            '''nth odd basis function (after third)'''
+            """nth odd basis function (after third)"""
             j += 1
             assert (j % 2 != 0) and (j >= 5)
             return (y - 0.5).pow((j - 1) / 2)
 
         def qgj_even(y, j):
-            '''nth even basis function (after fourth)'''
+            """nth even basis function (after fourth)"""
             j += 1
             assert (j % 2 == 0) and (j >= 6)
             return torch.log(y / (1 - y)) * (y - 0.5).pow(j / 2 - 1)
@@ -261,29 +263,29 @@ class Unbounded_Metalog_Model(nn.Module):
         ### Define basis functions for derivative of quantile function in terms of cumulative
         ### probability. (^ derivative of quantile function):
         def dqg1(y, i):
-            '''first basis function'''
+            """first basis function"""
             return torch.zeros_like(y)
 
         def dqg2(y, i):
-            '''second basis function'''
+            """second basis function"""
             return 1 / (y * (1 - y))
 
         def dqg3(y, i):
-            '''third basis function'''
+            """third basis function"""
             return (y - 1 / 2) / (y * (1 - y)) + torch.log(y / (1 - y))
 
         def dqg4(y, i):
-            '''fourth basis function'''
+            """fourth basis function"""
             return torch.ones_like(y)
 
         def dqgj_odd(y, j):
-            '''nth odd basis function (after third)'''
+            """nth odd basis function (after third)"""
             j += 1
             assert (j % 2 != 0) and (j >= 5)
             return ((j - 1) / 2) * (y - 1 / 2).pow((j - 3) / 2)
 
         def dqgj_even(y, j):
-            '''nth even basis function (after fourth)'''
+            """nth even basis function (after fourth)"""
             j += 1
             assert (j % 2 == 0) and (j >= 6)
             return (y - 1 / 2).pow(j / 2 - 1) / (y * (1 - y)) + (j / 2 - 1) * (
@@ -300,14 +302,14 @@ class Unbounded_Metalog_Model(nn.Module):
         self.dqf_basis_functions = self.dqf_basis_functions[: self.n]
 
     def constrain(self):
-        '''Coefficients are unconstrained in this case.'''
+        """Coefficients are unconstrained in this case."""
         pass
 
     def quantile(self, y):
-        '''
+        """
         Quantile of cumulative probability "y".  (returns x-position of cumulative probability "y".
         This is an inverse CDF)
-        '''
+        """
         x_values = sum(
             [
                 self.a[:, idx].unsqueeze(-1) * f(y, idx)
@@ -317,10 +319,10 @@ class Unbounded_Metalog_Model(nn.Module):
         return x_values
 
     def derivative_quantile(self, y):
-        '''
+        """
         Derivative of quantile as function of cumulative probability "y".
         (AKA: quantile density function.)
-        '''
+        """
         return sum(
             [
                 self.a[:, idx].unsqueeze(-1) * f(y, idx)
@@ -329,18 +331,18 @@ class Unbounded_Metalog_Model(nn.Module):
         )
 
     def prob_ito_cumprob(self, y):
-        '''Probability density in terms of cumulative probability "y".'''
+        """Probability density in terms of cumulative probability "y"."""
         return self.derivative_quantile(y).pow(-1)
 
     def prob(self, x, iters=64):
-        '''
+        """
         Approximates probability density at a batch of tensors "x" by asymptotically bounded
         approach. There is currently no known closed-form inverse metalog.
-        '''
+        """
         eps = 1e-7
         cum_y_guess = torch.ones_like(x) * 1 / 3
 
-        lr = 1/3
+        lr = 1 / 3
         old_x_guess = self.quantile(cum_y_guess)  # initial
         old_diff = 0  # initial
         adj = torch.tensor([1]).to(self.a.device) / x.shape[1]  # initial
@@ -362,11 +364,11 @@ class Unbounded_Metalog_Model(nn.Module):
         return density
 
     def log_prob(self, x):
-        '''Approximates log of probability density at a batch of tensors "x".'''
+        """Approximates log of probability density at a batch of tensors "x"."""
         return torch.log(self.prob(x))
 
     def estimate_entropy(self, steps=256):
-        '''Estimates shannon entropy of the distribution in nats by numeric integration.'''
+        """Estimates shannon entropy of the distribution in nats by numeric integration."""
         eps = 1e-7
         a = eps  # lower integration bound
         b = 1 - eps  # upper integration bound
@@ -378,16 +380,19 @@ class Unbounded_Metalog_Model(nn.Module):
         return entropy
 
     def sample(self, shape):
-        '''Simulates data of shape "shape" by inverse tranform sampling.'''
+        """Simulates data of shape "shape" by inverse tranform sampling."""
         eps = 1e-7
-        return self.quantile(torch.rand(shape).clamp(min=eps, max=1-eps).to(self.a.device))
+        return self.quantile(
+            torch.rand(shape).clamp(min=eps, max=1 - eps).to(self.a.device)
+        )
 
     def forward(self, x):
-        '''
+        """
         By default: Approximates probability density at a batch of tensors "x" by asymptotically
         bounded approach. There is currently no known closed-form inverse metalog.
-        '''
+        """
         return self.prob(x)
+
 
 def Metalog_Fit_Closed_Form(model, data):
     """
@@ -413,4 +418,3 @@ def Metalog_Fit_Closed_Form(model, data):
         x.unsqueeze(-1),
     ).flatten(1)
     model.a.data = a
-
