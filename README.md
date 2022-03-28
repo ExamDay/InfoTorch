@@ -27,7 +27,9 @@ Calculations include:
 - kernel density estimate
 - MLE Fit (fit a model by maximum likelihood estimation)
 - ECDF (empirical cumulative distribution function)
-- Metalog Fit (Closed Form)
+- Metalog Fit (Closed-form)
+- Polynomial Fit (Closed-form, with or without weights)
+- Mutual Information
 
 ### Classes:
 - Normal Model (for example)

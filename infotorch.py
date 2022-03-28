@@ -2,6 +2,12 @@ import torch
 import torch.nn as nn
 from torch.distributions import Normal
 
+import torch.nn as nn
+import torch.nn.functional as F
+import numpy as np
+
+device = "cuda"
+
 
 def skewness_fn(x, dim=1):
     """Calculates skewness of data "x" along dimension "dim"."""
@@ -418,3 +424,70 @@ def Metalog_Fit_Closed_Form(model, data):
         x.unsqueeze(-1),
     ).flatten(1)
     model.a.data = a
+
+
+def polynomial_fit(x, y, num_terms=5, weights=None):
+    """
+    Fits a polynomial curve of order "num_terms" to the datapoints in "x" and "y". This function
+    supports channeling for fitting to mulitple independent data channels at once, and expects data
+    in channeled form with shape like [channels, points]. (one channel is fine)
+    Returns Tensor of shape [channels, num_terms].
+    """
+    X_cols = [x.pow(n) for n in range(num_terms)]
+    X = torch.stack(X_cols, -1)
+
+    if weights is None:
+        a = torch.bmm(
+            torch.linalg.solve(torch.bmm(X.transpose(1, 2), X), X.transpose(1, 2)),
+            y.unsqueeze(-1),
+        ).flatten(1)
+    else:
+        a = torch.bmm(
+            torch.linalg.solve(
+                torch.bmm(X.transpose(1, 2), torch.bmm(weights, X)), X.transpose(1, 2)
+            ),
+            torch.bmm(weights, y.unsqueeze(-1)),
+        ).flatten(1)
+    return a
+
+def mutual_information(data, idx, num_terms=5, weights=None):
+    """
+    Returns the mutual information between the channel "idx" of the data, and every channel of the
+    data (including channel idx, which should be very large if nothing went wrong).
+    In other words:
+        this measures how much knowledge is to be gained about other channels from knowledge of the
+        state of channel "idx".
+    """
+    channels = data.shape[0]
+
+    # calculate initial entropy
+    initial_model = Unbounded_Metalog_Model(init_a=torch.zeros([channels, 7])).to(
+        device
+    )
+    Metalog_Fit_Closed_Form(initial_model, data)
+    initial_entropy = initial_model.estimate_entropy()
+
+    # prepare to fit curve to relationship
+    x = data[idx].repeat(channels, 1)
+    y = data
+
+    # fit curve to relationship
+    a = polynomial_fit(x, y, num_terms)
+
+    # calculate confounding effect
+    X_cols = [x.pow(n) for n in range(num_terms)]
+    X = torch.stack(X_cols, 0)
+    y = torch.mm(a, X)
+
+    # subtract that effect
+    data = data - y
+
+    # calcualte new entropy:
+    final_model = Unbounded_Metalog_Model(init_a=torch.zeros([channels, 7])).to(
+        device
+    )
+    Metalog_Fit_Closed_Form(final_model, data)
+    final_entropy = final_model.estimate_entropy()
+
+    return -(final_entropy - initial_entropy)
+

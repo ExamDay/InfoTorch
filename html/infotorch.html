@@ -30,6 +30,12 @@
 import torch.nn as nn
 from torch.distributions import Normal
 
+import torch.nn as nn
+import torch.nn.functional as F
+import numpy as np
+
+device = &#34;cuda&#34;
+
 
 def skewness_fn(x, dim=1):
     &#34;&#34;&#34;Calculates skewness of data &#34;x&#34; along dimension &#34;dim&#34;.&#34;&#34;&#34;
@@ -445,7 +451,73 @@ def Metalog_Fit_Closed_Form(model, data):
         torch.linalg.solve(torch.bmm(Y.transpose(1, 2), Y), Y.transpose(1, 2)),
         x.unsqueeze(-1),
     ).flatten(1)
-    model.a.data = a</code></pre>
+    model.a.data = a
+
+
+def polynomial_fit(x, y, num_terms=5, weights=None):
+    &#34;&#34;&#34;
+    Fits a polynomial curve of order &#34;num_terms&#34; to the datapoints in &#34;x&#34; and &#34;y&#34;. This function
+    supports channeling for fitting to mulitple independent data channels at once, and expects data
+    in channeled form with shape like [channels, points]. (one channel is fine)
+    Returns Tensor of shape [channels, num_terms].
+    &#34;&#34;&#34;
+    X_cols = [x.pow(n) for n in range(num_terms)]
+    X = torch.stack(X_cols, -1)
+
+    if weights is None:
+        a = torch.bmm(
+            torch.linalg.solve(torch.bmm(X.transpose(1, 2), X), X.transpose(1, 2)),
+            y.unsqueeze(-1),
+        ).flatten(1)
+    else:
+        a = torch.bmm(
+            torch.linalg.solve(
+                torch.bmm(X.transpose(1, 2), torch.bmm(weights, X)), X.transpose(1, 2)
+            ),
+            torch.bmm(weights, y.unsqueeze(-1)),
+        ).flatten(1)
+    return a
+
+def mutual_information(data, idx, num_terms=5, weights=None):
+    &#34;&#34;&#34;
+    Returns the mutual information between the channel &#34;idx&#34; of the data, and every channel of the
+    data (including channel idx, which should be very large if nothing went wrong).
+    In other words:
+        this measures how much knowledge is to be gained about other channels from knowledge of the
+        state of channel &#34;idx&#34;.
+    &#34;&#34;&#34;
+    channels = data.shape[0]
+
+    # calculate initial entropy
+    initial_model = Unbounded_Metalog_Model(init_a=torch.zeros([channels, 7])).to(
+        device
+    )
+    Metalog_Fit_Closed_Form(initial_model, data)
+    initial_entropy = initial_model.estimate_entropy()
+
+    # prepare to fit curve to relationship
+    x = data[idx].repeat(channels, 1)
+    y = data
+
+    # fit curve to relationship
+    a = polynomial_fit(x, y, num_terms)
+
+    # calculate confounding effect
+    X_cols = [x.pow(n) for n in range(num_terms)]
+    X = torch.stack(X_cols, 0)
+    y = torch.mm(a, X)
+
+    # subtract that effect
+    data = data - y
+
+    # calcualte new entropy:
+    final_model = Unbounded_Metalog_Model(init_a=torch.zeros([channels, 7])).to(
+        device
+    )
+    Metalog_Fit_Closed_Form(final_model, data)
+    final_entropy = final_model.estimate_entropy()
+
+    return -(final_entropy - initial_entropy)</code></pre>
 </details>
 </section>
 <section>
@@ -700,6 +772,98 @@ distribution. Otherwise, they follow a bimodal or multimodal distribution.</p></
         - 3 * (n - 1)
     )
     return kurtosis</code></pre>
+</details>
+</dd>
+<dt id="infotorch.mutual_information"><code class="name flex">
+<span>def <span class="ident">mutual_information</span></span>(<span>data, idx, num_terms=5, weights=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the mutual information between the channel "idx" of the data, and every channel of the
+data (including channel idx, which should be very large if nothing went wrong).
+In other words:
+this measures how much knowledge is to be gained about other channels from knowledge of the
+state of channel "idx".</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mutual_information(data, idx, num_terms=5, weights=None):
+    &#34;&#34;&#34;
+    Returns the mutual information between the channel &#34;idx&#34; of the data, and every channel of the
+    data (including channel idx, which should be very large if nothing went wrong).
+    In other words:
+        this measures how much knowledge is to be gained about other channels from knowledge of the
+        state of channel &#34;idx&#34;.
+    &#34;&#34;&#34;
+    channels = data.shape[0]
+
+    # calculate initial entropy
+    initial_model = Unbounded_Metalog_Model(init_a=torch.zeros([channels, 7])).to(
+        device
+    )
+    Metalog_Fit_Closed_Form(initial_model, data)
+    initial_entropy = initial_model.estimate_entropy()
+
+    # prepare to fit curve to relationship
+    x = data[idx].repeat(channels, 1)
+    y = data
+
+    # fit curve to relationship
+    a = polynomial_fit(x, y, num_terms)
+
+    # calculate confounding effect
+    X_cols = [x.pow(n) for n in range(num_terms)]
+    X = torch.stack(X_cols, 0)
+    y = torch.mm(a, X)
+
+    # subtract that effect
+    data = data - y
+
+    # calcualte new entropy:
+    final_model = Unbounded_Metalog_Model(init_a=torch.zeros([channels, 7])).to(
+        device
+    )
+    Metalog_Fit_Closed_Form(final_model, data)
+    final_entropy = final_model.estimate_entropy()
+
+    return -(final_entropy - initial_entropy)</code></pre>
+</details>
+</dd>
+<dt id="infotorch.polynomial_fit"><code class="name flex">
+<span>def <span class="ident">polynomial_fit</span></span>(<span>x, y, num_terms=5, weights=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Fits a polynomial curve of order "num_terms" to the datapoints in "x" and "y". This function
+supports channeling for fitting to mulitple independent data channels at once, and expects data
+in channeled form with shape like [channels, points]. (one channel is fine)
+Returns Tensor of shape [channels, num_terms].</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def polynomial_fit(x, y, num_terms=5, weights=None):
+    &#34;&#34;&#34;
+    Fits a polynomial curve of order &#34;num_terms&#34; to the datapoints in &#34;x&#34; and &#34;y&#34;. This function
+    supports channeling for fitting to mulitple independent data channels at once, and expects data
+    in channeled form with shape like [channels, points]. (one channel is fine)
+    Returns Tensor of shape [channels, num_terms].
+    &#34;&#34;&#34;
+    X_cols = [x.pow(n) for n in range(num_terms)]
+    X = torch.stack(X_cols, -1)
+
+    if weights is None:
+        a = torch.bmm(
+            torch.linalg.solve(torch.bmm(X.transpose(1, 2), X), X.transpose(1, 2)),
+            y.unsqueeze(-1),
+        ).flatten(1)
+    else:
+        a = torch.bmm(
+            torch.linalg.solve(
+                torch.bmm(X.transpose(1, 2), torch.bmm(weights, X)), X.transpose(1, 2)
+            ),
+            torch.bmm(weights, y.unsqueeze(-1)),
+        ).flatten(1)
+    return a</code></pre>
 </details>
 </dd>
 <dt id="infotorch.skewness_fn"><code class="name flex">
@@ -1281,6 +1445,8 @@ This is an inverse CDF)</p></div>
 <li><code><a title="infotorch.Metalog_Fit_Closed_Form" href="#infotorch.Metalog_Fit_Closed_Form">Metalog_Fit_Closed_Form</a></code></li>
 <li><code><a title="infotorch.bimodality_index" href="#infotorch.bimodality_index">bimodality_index</a></code></li>
 <li><code><a title="infotorch.kurtosis_fn" href="#infotorch.kurtosis_fn">kurtosis_fn</a></code></li>
+<li><code><a title="infotorch.mutual_information" href="#infotorch.mutual_information">mutual_information</a></code></li>
+<li><code><a title="infotorch.polynomial_fit" href="#infotorch.polynomial_fit">polynomial_fit</a></code></li>
 <li><code><a title="infotorch.skewness_fn" href="#infotorch.skewness_fn">skewness_fn</a></code></li>
 </ul>
 </li>
