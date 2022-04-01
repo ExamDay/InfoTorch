@@ -5,7 +5,7 @@ With easy hardware acceleration on GPU and TPU.
 ## Installing
 - Clone this repository wherever you want
 
-- Create vitual environment and active it (if you're radical like me and addicted to danger you can skip this step)
+- Create a vitual environment and active it (if you're radical like me and addicted to danger you can skip this step)
 ```bash
 cd /path/to/this/repository
 python3 -m venv venv
