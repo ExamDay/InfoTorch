@@ -348,7 +348,7 @@ def Metalog_Fit_Closed_Form(model, data):
     model.a.data = a
 
 
-samples_shape = [64]
+samples_shape = [16384]
 Ma = Normal(
     torch.zeros(samples_shape).to(device) - 1,
     torch.ones(samples_shape).to(device),
@@ -375,7 +375,7 @@ model = Normal_Model(
 ).to(device)
 MLE_Fit(model, norm_data, dim=1, iters=250)
 
-metalog_model = Unbounded_Metalog_Model(init_a=torch.zeros([2, 7])).to(device)
+metalog_model = Unbounded_Metalog_Model(init_a=torch.zeros([2, 16])).to(device)
 Metalog_Fit_Closed_Form(metalog_model, norm_data)
 
 
@@ -430,8 +430,8 @@ ax.plot(ecdfX1.cpu().detach().numpy(), ecdfY1.cpu().detach().numpy(), "g")
 ax.plot(ecdfX2.cpu().detach().numpy(), ecdfY2.cpu().detach().numpy(), "g")
 
 # Normal Histograms
-ax.hist(norm_data[0, :].cpu().detach().numpy(), bins=16, density=True)
-ax.hist(norm_data[1, :].cpu().detach().numpy(), bins=16, density=True)
+ax.hist(norm_data[0, :].cpu().detach().numpy(), bins=64, density=True)
+ax.hist(norm_data[1, :].cpu().detach().numpy(), bins=64, density=True)
 
 #  # LOG NORMAL:
 #  ground_truth_y_tics = (
@@ -553,7 +553,7 @@ mix = (Ma.log_prob(x_tics).exp() + Mb.log_prob(x_tics).exp()) / 2
 ax.plot(x_tics.cpu().detach().numpy(), mix.cpu().detach().numpy(), "k")
 
 # Metalog PDF:
-steps = 64  # steps for estimation
+steps = 16384  # steps for estimation
 # ^ this must be an integer
 a = -10  # lower integration bound
 b = 15  # upper integration bound
@@ -567,9 +567,9 @@ ax.plot(x_tics.cpu().detach().numpy(), y_tics[2].cpu().detach().numpy(), "r--")
 
 print("entropy:", metalog_model.estimate_entropy(steps=4096))
 
-ax.hist(norm_data[0, :].cpu().detach().numpy(), bins=16, density=True)
-ax.hist(norm_data[1, :].cpu().detach().numpy(), bins=16, density=True)
-ax.hist(norm_data[2, :].cpu().detach().numpy(), bins=32, density=True)
+ax.hist(norm_data[0, :].cpu().detach().numpy(), bins=64, density=True)
+ax.hist(norm_data[1, :].cpu().detach().numpy(), bins=64, density=True)
+ax.hist(norm_data[2, :].cpu().detach().numpy(), bins=128, density=True)
 
 ax.legend(
     [
