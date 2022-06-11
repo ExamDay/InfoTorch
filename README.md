@@ -101,7 +101,7 @@ Calculations include:
 
 ## ToDo:
 
-- Mutual information estimation.
+- Higher Order Mutual information estimation.
 - Interaction information estimation.
 
 ## Contributing
