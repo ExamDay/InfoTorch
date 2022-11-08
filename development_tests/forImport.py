@@ -4,17 +4,6 @@ import torch.nn.functional as F
 import numpy as np
 from torch.distributions import Normal
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-import patchworklib as pw
-
-sns.set()
-plt.style.use("seaborn-whitegrid")
-pw.overwrite_axisgrid()
-
-device = "cuda"
-
-
 class Unbounded_Metalog_Model(nn.Module):
     """
     An implimentation of unbounded metalog models.
@@ -173,18 +162,19 @@ class Unbounded_Metalog_Model(nn.Module):
 
     def estimate_entropy(self, steps=256):
         """Estimates shannon entropy of the distribution in nats by numeric integration."""
-        self.a.data = self.a.data.double()  # increase precision
+        #  self.a.data = self.a.data.double()  # increase precision
         eps = 1e-7
         a = eps  # lower integration bound
         b = 1 - eps  # upper integration bound
-        cum_y_tics = torch.Tensor(np.linspace(a, b, steps)).double().to(self.a.device)
+        #  cum_y_tics = torch.Tensor(np.linspace(a, b, steps)).double().to(self.a.device)
+        cum_y_tics = torch.Tensor(np.linspace(a, b, steps)).to(self.a.device)
         # shape for batch and channel support;
         cum_y_tics = cum_y_tics.repeat(self.a.shape[0], 1)
 
         qp_tics = self.derivative_quantile(cum_y_tics)
         entropy = torch.trapz(torch.nan_to_num(torch.log(qp_tics), 0), cum_y_tics)
 
-        self.a.data = self.a.data.float()  # reset precision
+        #  self.a.data = self.a.data.float()  # reset precision
 
         return entropy
 
@@ -207,12 +197,22 @@ def ECDF(x: torch.Tensor, dim: int = 0, reach_limits=True):
     """
     set "reach_limit" to false to calculate ECDF in a way that will not include perfect 0 or 1.
     """
-    x = torch.sort(x.flatten(dim), dim=dim).values
-    n = x.shape[-1]
-    cum = torch.arange(1, n + 1).to(x.device) / (n + 1 - reach_limits)
-    cum = cum.repeat(*x.shape[0:-1], 1)  # one for each univariate sample
+    if device == "mps":
+        # can't do sorting on mps yet so:
+        x = x.to("cpu")  # <- move to cpu
+        x = torch.sort(x.flatten(dim), dim=dim).values
+        n = x.shape[-1]
+        cum = torch.arange(1, n + 1) / (n + 1 - reach_limits)
+        cum = cum.repeat(*x.shape[0:-1], 1)  # one for each univariate sample
+        # move back to device:
+        x = x.to(device)
+        cum = cum.to(device)
+    else:
+        x = torch.sort(x.flatten(dim), dim=dim).values
+        n = x.shape[-1]
+        cum = torch.arange(1, n + 1).to(x.device) / (n + 1 - reach_limits)
+        cum = cum.repeat(*x.shape[0:-1], 1)  # one for each univariate sample
     return x, cum
-
 
 def Metalog_Fit_Closed_Form(model, data, weights=None):
     """Fits the parameters of the model to the data by a closed-form linear least-squares method."""
@@ -223,7 +223,6 @@ def Metalog_Fit_Closed_Form(model, data, weights=None):
 
     Y_cols = [f(y, idx) for idx, f in enumerate(model.qf_basis_functions)]
     Y = torch.stack(Y_cols, -1)
-    #  print("Y:", Y)
     if weights is None:
         a = torch.bmm(
             torch.linalg.solve(torch.bmm(Y.transpose(1, 2), Y), Y.transpose(1, 2)),
@@ -237,7 +236,6 @@ def Metalog_Fit_Closed_Form(model, data, weights=None):
             torch.bmm(weights, x.unsqueeze(-1)),
         ).flatten(1)
     model.a.data = a
-
 
 def polynomial_fit(x, y, num_terms=5, weights=None):
     X_cols = [x.pow(n) for n in range(num_terms)]
@@ -257,220 +255,3 @@ def polynomial_fit(x, y, num_terms=5, weights=None):
         ).flatten(1)
     return a
 
-
-def mutual_information(data, idx, num_terms=5, weights=None):
-    channels = data.shape[0]
-
-    initial_model = Unbounded_Metalog_Model(init_a=torch.zeros([channels, 7])).to(
-        device
-    )
-    Metalog_Fit_Closed_Form(initial_model, data)
-    initial_entropy = initial_model.estimate_entropy()
-
-    ##########################
-    ### model relationship ###
-    x = data[idx].repeat(channels, 1)
-    y = data
-
-    X_cols = [x.pow(n) for n in range(num_terms)]
-    X = torch.stack(X_cols, -1)
-
-    if weights is None:
-        a = torch.bmm(
-            torch.linalg.solve(torch.bmm(X.transpose(1, 2), X), X.transpose(1, 2)),
-            y.unsqueeze(-1),
-        ).flatten(1)
-    else:
-        a = torch.bmm(
-            torch.linalg.solve(
-                torch.bmm(X.transpose(1, 2), torch.bmm(weights, X)), X.transpose(1, 2)
-            ),
-            torch.bmm(weights, y.unsqueeze(-1)),
-        ).flatten(1)
-
-    #####################
-    ### for business: ###
-
-    y = torch.mm(a, X[0, :].T)
-
-    x = data[idx]
-    #####################
-
-    #################
-    ### for show: ###
-
-    #  y = torch.mm(a, X)
-    print("y.shape", y.shape)
-
-    x, indices = data[idx].sort()
-    print("x.shape", x.shape)
-    print("indices.shape", indices.shape)
-    rev_indices = indices.sort().indices
-    rev_indices = rev_indices.repeat(y.shape[0], 1)
-    print("rev_indices.shape", rev_indices.shape)
-    y = y.scatter(1, rev_indices, y)
-    print("y.shape", y.shape)
-
-    relationship = torch.mm(a, X[0, :].T)
-
-    res_x = data[idx]
-
-    ### account for relationship:
-    residue = data - relationship
-    relationship_residue = relationship - relationship
-
-    ### PLOT:
-    bricks = []
-    for i in range(channels):
-        #  fig, axes = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(10, 5))
-
-        G0 = sns.JointGrid(
-            dropna=True, xlim=(-10, 10), ylim=(-10, 10), marginal_ticks=False
-        )
-
-        # plot datapoints before relationship removal:
-        sns.scatterplot(
-            ax=G0.ax_joint,
-            x=data[idx].cpu().detach().numpy(),
-            y=data[i].cpu().detach().numpy(),
-        )
-        # plot kde:
-        sns.kdeplot(
-            x=data[idx].cpu().detach().numpy(),
-            linewidth=1.5,
-            ax=G0.ax_marg_x,
-            bw_adjust=1.25,
-            fill=True,
-            common_norm=True,
-        )
-        sns.kdeplot(
-            y=data[i].cpu().detach().numpy(),
-            linewidth=1.5,
-            ax=G0.ax_marg_y,
-            bw_adjust=1.25,
-            fill=True,
-            common_norm=True,
-        )
-        # plot relationships:
-        relationship_curve_x = torch.DoubleTensor(
-            np.linspace(data[idx].min().cpu(), data[idx].max().cpu(), 2048)
-        )
-        relationship_curve_y = sum(
-            [
-                coeff * relationship_curve_x.pow(idx)
-                for idx, coeff in enumerate(a[i].cpu())
-            ]
-        )
-
-        sns.lineplot(
-            ax=G0.ax_joint,
-            #  x=x.cpu().detach().numpy(),
-            #  y=y[i].cpu().detach().numpy(),
-            x=relationship_curve_x,
-            y=relationship_curve_y,
-            color="darkorange",
-            linewidth=1.5,
-        )
-        bricks.append(pw.load_seaborngrid(G0, label=f"brick{i*2}"))
-
-        #  display data after relationship removal (residue):
-        G1 = sns.JointGrid(
-            dropna=True, xlim=(-10, 10), ylim=(-10, 10), marginal_ticks=False
-        )
-        # plot datapoints before relationship removal:
-        sns.scatterplot(
-            ax=G1.ax_joint,
-            x=res_x.cpu().detach().numpy(),
-            y=residue[i].cpu().detach().numpy(),
-        )
-        # plot kde:
-        sns.kdeplot(
-            x=res_x.cpu().detach().numpy(),
-            linewidth=1.25,
-            ax=G1.ax_marg_x,
-            bw_adjust=1.25,
-            fill=True,
-            common_norm=True,
-        )
-        sns.kdeplot(
-            y=residue[i].cpu().detach().numpy(),
-            linewidth=1.25,
-            ax=G1.ax_marg_y,
-            bw_adjust=1.25,
-            fill=True,
-            common_norm=True,
-        )
-        # plot relationships:
-        sns.lineplot(
-            ax=G1.ax_joint,
-            x=res_x.cpu().detach().numpy(),
-            y=relationship_residue[i].cpu().detach().numpy(),
-            color="darkorange",
-            linewidth=1.5,
-        )
-        bricks.append(pw.load_seaborngrid(G1, label=f"brick{i*2+1}"))
-
-    quilt = (
-        (bricks[0] | bricks[1])
-        / (bricks[2] | bricks[3])
-        / (bricks[4] | bricks[5])
-        / (bricks[6] | bricks[7])
-        / (bricks[8] | bricks[9])
-        / (bricks[10] | bricks[11])
-    )
-    quilt.savefig("seaborn_subplots.png")
-
-    # calculate entropy after relationship removal:
-    final_model = Unbounded_Metalog_Model(init_a=torch.zeros([channels, 7])).to(device)
-    Metalog_Fit_Closed_Form(final_model, residue)
-    final_entropy = final_model.estimate_entropy()
-
-    print("initial_entropy:", initial_entropy.tolist())
-    print("final_entropy:", final_entropy.tolist())
-    print("entropy difference:", (final_entropy - initial_entropy).tolist())
-
-
-### Generate Data: ###
-samples_shape = [512]
-
-base_dist = Normal(
-    torch.zeros(samples_shape).double().to(device),
-    torch.ones(samples_shape).double().to(device) * 3,
-)  # known skew = 0, known kurt = 0
-base_var = base_dist.sample()
-
-eA = Normal(
-    torch.zeros(samples_shape).double().to(device),
-    torch.ones(samples_shape).double().to(device) * 1,
-)
-a = base_var + eA.sample()
-
-eB = Normal(
-    torch.zeros(samples_shape).double().to(device),
-    torch.ones(samples_shape).double().to(device) * 3,
-)
-b = eB.sample()
-
-eC = Normal(
-    torch.zeros(samples_shape).double().to(device),
-    torch.ones(samples_shape).double().to(device) * 1,
-)
-c = (0.5 * -base_var.pow(2)) + eC.sample() + 5
-
-eD = Normal(
-    torch.zeros(samples_shape).double().to(device),
-    torch.ones(samples_shape).double().to(device) * 1,
-)
-d = (0.5 * base_var.pow(2)) + eD.sample() - 5
-
-eE = Normal(
-    torch.zeros(samples_shape).double().to(device),
-    torch.ones(samples_shape).double().to(device) * 1,
-)
-e = 5 * torch.sin(base_var) + eE.sample()
-
-data = torch.stack((base_var, a, b, c, d, e), 0)
-
-print("data.shape:", data.shape)
-
-mutual_information(data, 0, num_terms=16)
